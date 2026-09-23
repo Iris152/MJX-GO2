@@ -1,0 +1,34 @@
+algorithm: ahac
+embodiment: go2
+variant: blind_nolinvel_nokinref
+model_xml: src/envs/go2/models/scene_mjx.xml
+steps: 8000000
+seed: 61
+unroll_length: 16
+num_envs: 256
+
+cmd_zero_prob: [0.1, 0.2, 0.3]
+cmd_stand_prob: 0.08
+cmd_vel_x_range: [-1.5, 1.5]
+cmd_vel_y_range: [-1.0, 1.0]
+cmd_yaw_rate_range: [-1.5, 1.5]
+track_weights: [1.00, 1.50, 1.00]
+
+actor_lr: 0.005
+critic_lr: 0.0005
+critic_iterations: 16
+action_noise_std_start: 0.4
+action_noise_std_end: 0.1
+lr_decay: true
+no_curriculum: false
+
+ahac_steps_min: 8
+ahac_steps_max: 16
+ahac_initial_horizon: 8
+ahac_lambd_lr: 0.04
+ahac_horizon_contact_threshold: 0.08
+ahac_contact_force_threshold: 4.5
+ahac_contact_delta_threshold: 3.5
+ahac_penalty_weight: 0.0
+ahac_min_gradient_steps: 8
+ahac_contact_truncation: false

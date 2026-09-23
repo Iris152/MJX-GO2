@@ -1,0 +1,36 @@
+algorithm: sapo
+embodiment: go2
+variant: blind_nolinvel_nokinref
+model_xml: src/envs/go2/models/scene_mjx.xml
+
+# Match the accepted SHAC environment and command distribution.
+steps: 8000000
+seed: 61
+unroll_length: 32
+num_envs: 256
+cmd_zero_prob: [0.1, 0.2, 0.3]
+cmd_stand_prob: 0.08
+cmd_vel_x_range: [-1.5, 1.5]
+cmd_vel_y_range: [-1.0, 1.0]
+cmd_yaw_rate_range: [-1.5, 1.5]
+track_weights: [1.00, 1.50, 1.00]
+
+actor_lr: 0.002
+critic_lr: 0.0005
+critic_iterations: 16
+lr_decay: true
+no_curriculum: false
+
+# SAPO: state-dependent squashed Normal policy and soft double critic.
+sapo_init_alpha: 1.0
+sapo_target_entropy_scalar: 0.5
+sapo_alpha_lr: 0.005
+sapo_alpha_betas: [0.7, 0.95]
+sapo_log_std_init: -1.0
+sapo_min_log_std: -5.0
+sapo_max_log_std: 2.0
+sapo_actor_hidden: [128, 64, 32]
+sapo_critic_hidden: [64, 64]
+sapo_max_grad_norm: 0.5
+sapo_per_env_grad_clip: 10.0
+sapo_weight_decay: 0.0

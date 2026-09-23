@@ -1,0 +1,53 @@
+algorithm: ahac
+embodiment: go2
+variant: blind_nolinvel_nokinref
+model_xml: src/envs/go2/models/scene_mjx.xml
+steps: 8000000
+seed: 73
+unroll_length: 16
+num_envs: 256
+
+# 用户指定的初始姿态，顺序为：
+# [FL_hip, FL_thigh, FL_calf,
+#  FR_hip, FR_thigh, FR_calf,
+#  RL_hip, RL_thigh, RL_calf,
+#  RR_hip, RR_thigh, RR_calf]
+default_joint_pose:
+  [0.1, 0.8, -1.5,
+   -0.1, 0.8, -1.5,
+   0.1, 1.0, -1.5,
+   -0.1, 1.0, -1.5]
+
+# 该姿态在 base z 约 0.30m 时脚底基本贴地；0.302m 避免前脚初始轻微穿地。
+default_base_height: 0.302
+target_base_height: 0.30
+
+cmd_zero_prob: [0.1, 0.2, 0.3]
+cmd_stand_prob: 0.08
+cmd_vel_x_range: [-1.5, 1.5]
+cmd_vel_y_range: [-1.0, 1.0]
+cmd_yaw_rate_range: [-1.5, 1.5]
+track_weights: [1.00, 1.50, 1.00]
+
+actor_lr: 0.005
+critic_lr: 0.0005
+critic_iterations: 16
+action_noise_std_start: 0.4
+action_noise_std_end: 0.1
+lr_decay: true
+no_curriculum: false
+
+# difficulty=0 时使用 range 中心，即 kp=40、kd=1；随后随 curriculum 逐步扩展到完整随机范围。
+kp_range: [30.0, 50.0]
+kd_range: [0.8, 1.2]
+
+ahac_steps_min: 8
+ahac_steps_max: 16
+ahac_initial_horizon: 8
+ahac_lambd_lr: 0.04
+ahac_horizon_contact_threshold: 0.08
+ahac_contact_force_threshold: 4.5
+ahac_contact_delta_threshold: 3.5
+ahac_penalty_weight: 0.0
+ahac_min_gradient_steps: 8
+ahac_contact_truncation: false

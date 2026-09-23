@@ -1,0 +1,427 @@
+Failed to import warp: No module named 'warp'
+Failed to import mujoco_warp: No module named 'warp'
+  XML dof_damping: ['2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000']
+  Nominal actuator gains: kp=35.0, kd=0.5 (total damping per joint = kd + dof_damping = 2.5)
+  Torso body: 'base' -> id 1
+  Domain randomization: friction=(0.5, 2.0), mass=(0.85, 1.15), kp=(25.0, 45.0), kd=(0.3, 0.7), com_offset=+/-(0.05, 0.05, 0.04)
+  Implicit terrain: max_slope=0.0 deg (~0.00 m/s^2 along-slope), flat_prob=0.2
+  Foot sites: ['FL_foot', 'FR_foot', 'RL_foot', 'RR_foot'] -> ids [1, 2, 3, 4]
+  Foot geoms: ['FL', 'FR', 'RL', 'RR'] -> ids [20, 32, 44, 56]
+  Foot ground reference z=0.0036m (per-foot: ['0.0036', '0.0036', '0.0036', '0.0036'])
+Go2Env initialized:
+  actor_obs=10x45=450, critic_obs_dim=49
+  cmd_vel_x=(-2.0, 2.0), cmd_vel_y=(-1.0, 1.0), cmd_yaw_rate=(-1.5, 1.5)
+  cmd_zero_prob=(0.1, 0.7, 0.5), random command interval=(60, 140) steps (~2.0s mean)
+  action_scale=0.5
+  max_episode_length=5000 (100.0s)
+Algorithm: SHAC, Save dir: training_runs/shac_20260818_000906
+Domain randomization: action_noise=0.5->0.32, friction=(0.5, 2.0), mass=(0.85, 1.15), kp=(25.0, 45.0), kd=(0.3, 0.7), com_offset=+/-(0.05, 0.05, 0.04), velocity_push=(-1.0, 1.0) every 4.0s
+Curriculum: grace=0, curriculum=1 steps, terrain=OFF, terrain_flat_prob=0.2, terrain_slope_max=5.0 deg, terrain_bump_std=0.0
+Compiling...
+Compilation took 87.5s
+Training...
+======================================================================================
+   Step |     Rew |   TrkVx |   TrkVy |  TrkYaw |   AGrad |   CLoss |  Diff |   Status
+======================================================================================
+   4096 |  -1.002 |   0.943 |   0.205 |   0.605 |    2.02 | 102.2508 |  0.00 | LEARN
+  45056 |  -1.132 |   0.775 |   0.215 |   0.647 |    1.20 | 74.8437 |  1.00 | LEARN
+  >> New best! Reward: -1.132
+  >> New best tracking! Error sum: 1.795
+  86016 |  -1.158 |   0.820 |   0.254 |   0.546 |    0.85 | 37.2843 |  1.00 | LEARN
+  >> New best tracking! Error sum: 1.671
+ 126976 |  -1.245 |   0.838 |   0.258 |   0.546 |    0.51 | 38.7971 |  1.00 | LEARN
+  >> Checkpoint saved at step 126976
+ 167936 |  -1.171 |   0.841 |   0.258 |   0.523 |    0.47 | 36.8678 |  1.00 | LEARN
+ 208896 |  -1.067 |   0.796 |   0.253 |   0.527 |    0.43 | 42.4620 |  1.00 | LEARN
+  >> New best! Reward: -1.067
+  >> New best tracking! Error sum: 1.630
+ 249856 |  -1.031 |   0.848 |   0.222 |   0.464 |    0.46 | 45.1005 |  1.00 | LEARN
+  >> New best! Reward: -1.031
+  >> New best tracking! Error sum: 1.599
+  >> Checkpoint saved at step 249856
+ 290816 |  -1.023 |   0.845 |   0.216 |   0.479 |    0.41 | 38.1807 |  1.00 | LEARN
+  >> New best! Reward: -1.023
+ 331776 |  -1.129 |   0.892 |   0.215 |   0.473 |    0.50 | 39.2114 |  1.00 | LEARN
+ 372736 |  -0.882 |   0.814 |   0.197 |   0.435 |    0.34 | 29.5686 |  1.00 | LEARN
+  >> New best! Reward: -0.882
+  >> New best tracking! Error sum: 1.447
+  >> Checkpoint saved at step 372736
+ 413696 |  -0.992 |   0.821 |   0.231 |   0.483 |    0.62 | 41.2065 |  1.00 | LEARN
+ 454656 |  -0.856 |   0.829 |   0.180 |   0.435 |    0.39 | 37.4318 |  1.00 | LEARN
+  >> New best! Reward: -0.856
+ 495616 |  -0.871 |   0.796 |   0.214 |   0.452 |    0.82 | 38.4576 |  1.00 | LEARN
+  >> Checkpoint saved at step 495616
+ 536576 |  -0.729 |   0.761 |   0.213 |   0.431 |    0.40 | 36.6787 |  1.00 | LEARN
+  >> New best! Reward: -0.729
+  >> New best tracking! Error sum: 1.331
+ 577536 |  -0.766 |   0.821 |   0.198 |   0.426 |    0.41 | 31.2609 |  1.00 | LEARN
+ 618496 |  -0.882 |   0.831 |   0.231 |   0.447 |    0.55 | 57.1183 |  1.00 | LEARN
+  >> Checkpoint saved at step 618496
+ 659456 |  -0.803 |   0.852 |   0.195 |   0.410 |    0.45 | 44.3198 |  1.00 | LEARN
+ 700416 |  -0.838 |   0.818 |   0.221 |   0.433 |    0.61 | 47.9797 |  1.00 | LEARN
+ 741376 |  -0.870 |   0.843 |   0.206 |   0.438 |    0.55 | 53.3323 |  1.00 | LEARN
+  >> Checkpoint saved at step 741376
+ 782336 |  -0.535 |   0.755 |   0.220 |   0.408 |    0.74 | 33.9820 |  1.00 | LEARN
+  >> New best! Reward: -0.535
+  >> New best tracking! Error sum: 1.255
+ 823296 |  -0.524 |   0.725 |   0.218 |   0.430 |    0.71 | 32.7068 |  1.00 | LEARN
+  >> New best! Reward: -0.524
+  >> New best tracking! Error sum: 1.240
+ 864256 |  -0.552 |   0.699 |   0.239 |   0.416 |    0.71 | 49.5243 |  1.00 | LEARN
+  >> Checkpoint saved at step 864256
+ 905216 |  -0.269 |   0.589 |   0.225 |   0.392 |    0.63 | 42.2627 |  1.00 | LEARN
+  >> New best! Reward: -0.269
+  >> New best tracking! Error sum: 0.984
+ 946176 |  -0.192 |   0.572 |   0.245 |   0.361 |    0.54 | 39.3007 |  1.00 | LEARN
+  >> New best! Reward: -0.192
+  >> New best tracking! Error sum: 0.926
+ 987136 |  -0.282 |   0.596 |   0.250 |   0.384 |    0.73 | 36.3156 |  1.00 | LEARN
+  >> Checkpoint saved at step 987136
+1028096 |  -0.245 |   0.547 |   0.251 |   0.399 |    0.71 | 45.0129 |  1.00 | LEARN
+1069056 |  -0.079 |   0.528 |   0.238 |   0.346 |    0.52 | 43.5329 |  1.00 | LEARN
+  >> New best! Reward: -0.079
+  >> New best tracking! Error sum: 0.834
+1110016 |  -0.091 |   0.536 |   0.210 |   0.357 |    0.50 | 43.6755 |  1.00 | LEARN
+  >> Checkpoint saved at step 1110016
+1150976 |  -0.069 |   0.554 |   0.227 |   0.362 |    0.36 | 35.4627 |  1.00 | LEARN
+  >> New best! Reward: -0.069
+1191936 |   0.006 |   0.515 |   0.225 |   0.332 |    0.68 | 44.7285 |  1.00 | LEARN
+  >> New best! Reward: 0.006
+  >> New best tracking! Error sum: 0.783
+1232896 |   0.013 |   0.509 |   0.221 |   0.341 |    0.49 | 43.9639 |  1.00 | LEARN
+  >> New best! Reward: 0.013
+  >> New best tracking! Error sum: 0.767
+  >> Checkpoint saved at step 1232896
+1273856 |   0.160 |   0.413 |   0.225 |   0.325 |    0.38 | 42.8346 |  1.00 | LEARN
+  >> New best! Reward: 0.160
+  >> New best tracking! Error sum: 0.624
+1314816 |   0.021 |   0.501 |   0.203 |   0.350 |    0.57 | 52.9923 |  1.00 | LEARN
+1355776 |   0.081 |   0.477 |   0.227 |   0.332 |    0.80 | 60.2607 |  1.00 | LEARN
+  >> Checkpoint saved at step 1355776
+1396736 |   0.111 |   0.499 |   0.200 |   0.322 |    0.43 | 39.5450 |  1.00 | LEARN
+1437696 |   0.080 |   0.467 |   0.226 |   0.338 |    0.52 | 87.7839 |  1.00 | LEARN
+1478656 |   0.195 |   0.427 |   0.218 |   0.336 |    0.69 | 56.1607 |  1.00 | LEARN
+  >> New best! Reward: 0.195
+  >> Checkpoint saved at step 1478656
+1519616 |   0.175 |   0.488 |   0.213 |   0.320 |    0.42 | 39.4969 |  1.00 | LEARN
+1560576 |   0.083 |   0.463 |   0.205 |   0.325 |    0.40 | 49.6839 |  1.00 | LEARN
+1601536 |   0.145 |   0.485 |   0.189 |   0.335 |    0.41 | 62.7919 |  1.00 | LEARN
+  >> Checkpoint saved at step 1601536
+1642496 |   0.105 |   0.460 |   0.231 |   0.340 |    0.48 | 79.9102 |  1.00 | LEARN
+1683456 |   0.240 |   0.428 |   0.206 |   0.311 |    0.34 | 40.7993 |  1.00 | LEARN
+  >> New best! Reward: 0.240
+  >> New best tracking! Error sum: 0.618
+1724416 |   0.107 |   0.507 |   0.220 |   0.323 |    0.59 | 63.0630 |  1.00 | LEARN
+  >> Checkpoint saved at step 1724416
+1765376 |   0.252 |   0.432 |   0.209 |   0.317 |    0.51 | 49.1582 |  1.00 | LEARN
+  >> New best! Reward: 0.252
+  >> New best tracking! Error sum: 0.613
+1806336 |   0.291 |   0.445 |   0.193 |   0.307 |    0.36 | 34.2417 |  1.00 | LEARN
+  >> New best! Reward: 0.291
+  >> New best tracking! Error sum: 0.587
+1847296 |   0.234 |   0.446 |   0.182 |   0.306 |    0.40 | 38.3650 |  1.00 | LEARN
+  >> Checkpoint saved at step 1847296
+1888256 |   0.185 |   0.492 |   0.207 |   0.291 |    0.33 | 49.2174 |  1.00 | LEARN
+1929216 |   0.266 |   0.432 |   0.205 |   0.303 |    0.51 | 44.3560 |  1.00 | LEARN
+1970176 |   0.205 |   0.444 |   0.204 |   0.308 |    0.44 | 56.2014 |  1.00 | LEARN
+  >> Checkpoint saved at step 1970176
+2011136 |   0.295 |   0.435 |   0.190 |   0.311 |    0.45 | 41.5697 |  1.00 | LEARN
+  >> New best! Reward: 0.295
+2052096 |   0.294 |   0.441 |   0.186 |   0.302 |    0.41 | 75.5560 |  1.00 | LEARN
+2093056 |   0.236 |   0.442 |   0.200 |   0.315 |    0.41 | 48.7478 |  1.00 | LEARN
+  >> Checkpoint saved at step 2093056
+2134016 |   0.275 |   0.419 |   0.188 |   0.323 |    0.34 | 47.9271 |  1.00 | LEARN
+2174976 |   0.321 |   0.404 |   0.185 |   0.305 |    0.47 | 55.2480 |  1.00 | LEARN
+  >> New best! Reward: 0.321
+  >> New best tracking! Error sum: 0.560
+2215936 |   0.246 |   0.433 |   0.197 |   0.322 |    0.38 | 67.4889 |  1.00 | LEARN
+  >> Checkpoint saved at step 2215936
+2256896 |   0.263 |   0.470 |   0.193 |   0.301 |    0.64 | 58.8868 |  1.00 | LEARN
+2297856 |   0.260 |   0.423 |   0.203 |   0.329 |    0.39 | 64.6927 |  1.00 | LEARN
+2338816 |   0.310 |   0.441 |   0.178 |   0.300 |    0.48 | 75.5800 |  1.00 | LEARN
+  >> Checkpoint saved at step 2338816
+2379776 |   0.324 |   0.412 |   0.179 |   0.306 |    0.38 | 79.9522 |  1.00 | LEARN
+  >> New best! Reward: 0.324
+2420736 |   0.274 |   0.417 |   0.193 |   0.309 |    0.35 | 45.7221 |  1.00 | LEARN
+2461696 |   0.241 |   0.442 |   0.185 |   0.318 |    0.58 | 55.5711 |  1.00 | LEARN
+  >> Checkpoint saved at step 2461696
+2502656 |   0.347 |   0.412 |   0.186 |   0.307 |    0.53 | 69.4095 |  1.00 | LEARN
+  >> New best! Reward: 0.347
+2543616 |   0.345 |   0.413 |   0.200 |   0.293 |    0.37 | 49.8815 |  1.00 | LEARN
+  >> New best tracking! Error sum: 0.548
+2584576 |   0.365 |   0.426 |   0.186 |   0.289 |    0.45 | 62.7212 |  1.00 | LEARN
+  >> New best! Reward: 0.365
+  >> Checkpoint saved at step 2584576
+2625536 |   0.412 |   0.399 |   0.186 |   0.289 |    0.37 | 42.4272 |  1.00 | TRYING
+  >> New best! Reward: 0.412
+  >> New best tracking! Error sum: 0.513
+2666496 |   0.300 |   0.433 |   0.189 |   0.312 |    0.36 | 38.3249 |  1.00 | LEARN
+2707456 |   0.305 |   0.470 |   0.182 |   0.283 |    0.37 | 58.1662 |  1.00 | LEARN
+  >> Checkpoint saved at step 2707456
+2748416 |   0.333 |   0.400 |   0.175 |   0.295 |    0.41 | 60.7367 |  1.00 | TRYING
+2789376 |   0.398 |   0.405 |   0.161 |   0.291 |    0.33 | 30.6217 |  1.00 | LEARN
+2830336 |   0.450 |   0.375 |   0.162 |   0.284 |    0.51 | 58.7365 |  1.00 | TRYING
+  >> New best! Reward: 0.450
+  >> New best tracking! Error sum: 0.490
+  >> Checkpoint saved at step 2830336
+2871296 |   0.370 |   0.404 |   0.171 |   0.294 |    0.44 | 65.8386 |  1.00 | LEARN
+2912256 |   0.334 |   0.428 |   0.181 |   0.292 |    0.39 | 60.3673 |  1.00 | LEARN
+2953216 |   0.351 |   0.415 |   0.197 |   0.310 |    0.42 | 62.0311 |  1.00 | LEARN
+  >> Checkpoint saved at step 2953216
+2994176 |   0.395 |   0.422 |   0.172 |   0.298 |    0.29 | 51.3929 |  1.00 | LEARN
+3035136 |   0.340 |   0.444 |   0.174 |   0.291 |    0.44 | 51.3082 |  1.00 | LEARN
+3076096 |   0.421 |   0.381 |   0.180 |   0.290 |    0.32 | 59.2827 |  1.00 | TRYING
+  >> Checkpoint saved at step 3076096
+3117056 |   0.430 |   0.379 |   0.176 |   0.291 |    0.27 | 68.8236 |  1.00 | TRYING
+3158016 |   0.342 |   0.418 |   0.178 |   0.287 |    0.42 | 70.2439 |  1.00 | LEARN
+3198976 |   0.385 |   0.385 |   0.185 |   0.302 |    0.53 | 51.7082 |  1.00 | TRYING
+  >> Checkpoint saved at step 3198976
+3239936 |   0.412 |   0.403 |   0.171 |   0.280 |    0.30 | 48.6497 |  1.00 | LEARN
+3280896 |   0.470 |   0.388 |   0.165 |   0.269 |    0.34 | 52.1099 |  1.00 | TRYING
+  >> New best! Reward: 0.470
+  >> New best tracking! Error sum: 0.478
+3321856 |   0.374 |   0.422 |   0.183 |   0.290 |    0.38 | 82.8087 |  1.00 | LEARN
+  >> Checkpoint saved at step 3321856
+3362816 |   0.422 |   0.392 |   0.180 |   0.285 |    0.30 | 66.9826 |  1.00 | TRYING
+3403776 |   0.394 |   0.418 |   0.172 |   0.290 |    0.39 | 57.8631 |  1.00 | LEARN
+3444736 |   0.383 |   0.433 |   0.179 |   0.282 |    0.42 | 33.0325 |  1.00 | LEARN
+  >> Checkpoint saved at step 3444736
+3485696 |   0.526 |   0.353 |   0.164 |   0.277 |    0.36 | 80.8180 |  1.00 | TRYING
+  >> New best! Reward: 0.526
+  >> New best tracking! Error sum: 0.443
+3526656 |   0.524 |   0.367 |   0.159 |   0.270 |    0.27 | 35.1334 |  1.00 | TRYING
+  >> New best tracking! Error sum: 0.441
+3567616 |   0.434 |   0.374 |   0.183 |   0.280 |    0.33 | 28.8569 |  1.00 | TRYING
+  >> Checkpoint saved at step 3567616
+3608576 |   0.451 |   0.411 |   0.160 |   0.277 |    0.23 | 49.9718 |  1.00 | LEARN
+3649536 |   0.422 |   0.421 |   0.182 |   0.278 |    0.30 | 64.0874 |  1.00 | LEARN
+3690496 |   0.390 |   0.407 |   0.173 |   0.279 |    0.33 | 72.6408 |  1.00 | LEARN
+  >> Checkpoint saved at step 3690496
+3731456 |   0.350 |   0.456 |   0.170 |   0.296 |    0.44 | 67.1705 |  1.00 | LEARN
+3772416 |   0.320 |   0.447 |   0.182 |   0.297 |    0.44 | 99.6742 |  1.00 | LEARN
+3813376 |   0.392 |   0.408 |   0.180 |   0.285 |    0.48 | 71.0996 |  1.00 | LEARN
+  >> Checkpoint saved at step 3813376
+3854336 |   0.387 |   0.430 |   0.163 |   0.295 |    0.38 | 58.5621 |  1.00 | LEARN
+3895296 |   0.371 |   0.402 |   0.195 |   0.285 |    0.44 | 61.0106 |  1.00 | LEARN
+3936256 |   0.454 |   0.361 |   0.184 |   0.282 |    0.30 | 53.2853 |  1.00 | TRYING
+  >> Checkpoint saved at step 3936256
+3977216 |   0.395 |   0.446 |   0.186 |   0.283 |    0.32 | 68.8424 |  1.00 | LEARN
+4018176 |   0.386 |   0.429 |   0.187 |   0.277 |    0.40 | 65.9199 |  1.00 | LEARN
+4059136 |   0.379 |   0.439 |   0.188 |   0.274 |    0.37 | 48.5365 |  1.00 | LEARN
+  >> Checkpoint saved at step 4059136
+4100096 |   0.394 |   0.425 |   0.166 |   0.274 |    0.38 | 49.4307 |  1.00 | LEARN
+4141056 |   0.417 |   0.405 |   0.201 |   0.277 |    0.30 | 41.0471 |  1.00 | LEARN
+4182016 |   0.424 |   0.383 |   0.181 |   0.283 |    0.46 | 60.6582 |  1.00 | TRYING
+  >> Checkpoint saved at step 4182016
+4222976 |   0.496 |   0.377 |   0.185 |   0.270 |    0.35 | 57.2073 |  1.00 | TRYING
+4263936 |   0.496 |   0.386 |   0.173 |   0.275 |    0.27 | 39.4775 |  1.00 | TRYING
+4304896 |   0.436 |   0.423 |   0.167 |   0.264 |    0.45 | 45.0436 |  1.00 | LEARN
+  >> Checkpoint saved at step 4304896
+4345856 |   0.496 |   0.376 |   0.169 |   0.278 |    0.34 | 89.6449 |  1.00 | TRYING
+4386816 |   0.383 |   0.413 |   0.186 |   0.276 |    0.33 | 63.3987 |  1.00 | LEARN
+4427776 |   0.548 |   0.373 |   0.173 |   0.268 |    0.27 | 45.0506 |  1.00 | TRYING
+  >> New best! Reward: 0.548
+  >> Checkpoint saved at step 4427776
+4468736 |   0.450 |   0.390 |   0.187 |   0.276 |    0.31 | 54.8692 |  1.00 | TRYING
+4509696 |   0.447 |   0.426 |   0.168 |   0.267 |    0.23 | 69.8300 |  1.00 | LEARN
+4550656 |   0.505 |   0.402 |   0.177 |   0.268 |    0.34 | 71.6669 |  1.00 | LEARN
+  >> Checkpoint saved at step 4550656
+4591616 |   0.450 |   0.416 |   0.185 |   0.269 |    0.49 | 62.6650 |  1.00 | LEARN
+4632576 |   0.519 |   0.375 |   0.163 |   0.265 |    0.24 | 55.1660 |  1.00 | TRYING
+4673536 |   0.362 |   0.454 |   0.188 |   0.276 |    0.31 | 75.7448 |  1.00 | LEARN
+  >> Checkpoint saved at step 4673536
+4714496 |   0.561 |   0.381 |   0.142 |   0.272 |    0.24 | 58.6317 |  1.00 | TRYING
+  >> New best! Reward: 0.561
+4755456 |   0.501 |   0.378 |   0.168 |   0.266 |    0.31 | 58.5484 |  1.00 | TRYING
+4796416 |   0.541 |   0.377 |   0.174 |   0.269 |    0.26 | 48.9657 |  1.00 | TRYING
+  >> Checkpoint saved at step 4796416
+4837376 |   0.503 |   0.389 |   0.180 |   0.264 |    0.27 | 69.5967 |  1.00 | TRYING
+4878336 |   0.429 |   0.426 |   0.179 |   0.276 |    0.35 | 71.0815 |  1.00 | LEARN
+4919296 |   0.434 |   0.420 |   0.184 |   0.262 |    0.23 | 49.2610 |  1.00 | LEARN
+  >> Checkpoint saved at step 4919296
+4960256 |   0.505 |   0.385 |   0.175 |   0.256 |    0.26 | 71.6658 |  1.00 | TRYING
+5001216 |   0.482 |   0.388 |   0.203 |   0.266 |    0.30 | 36.0019 |  1.00 | TRYING
+5042176 |   0.510 |   0.387 |   0.161 |   0.267 |    0.33 | 57.0514 |  1.00 | TRYING
+  >> Checkpoint saved at step 5042176
+5083136 |   0.368 |   0.447 |   0.187 |   0.287 |    0.52 | 72.7751 |  1.00 | LEARN
+5124096 |   0.413 |   0.471 |   0.189 |   0.270 |    0.56 | 54.9744 |  1.00 | LEARN
+5165056 |   0.417 |   0.411 |   0.178 |   0.284 |    0.45 | 70.2630 |  1.00 | LEARN
+  >> Checkpoint saved at step 5165056
+5206016 |   0.368 |   0.398 |   0.199 |   0.291 |    0.50 | 67.8554 |  1.00 | TRYING
+5246976 |   0.409 |   0.442 |   0.167 |   0.292 |    0.29 | 89.0629 |  1.00 | LEARN
+5287936 |   0.426 |   0.418 |   0.186 |   0.276 |    0.33 | 53.3094 |  1.00 | LEARN
+  >> Checkpoint saved at step 5287936
+5328896 |   0.469 |   0.404 |   0.173 |   0.287 |    0.36 | 74.7657 |  1.00 | LEARN
+5369856 |   0.362 |   0.438 |   0.191 |   0.281 |    0.35 | 69.3901 |  1.00 | LEARN
+5410816 |   0.330 |   0.466 |   0.184 |   0.282 |    0.33 | 49.0086 |  1.00 | LEARN
+  >> Checkpoint saved at step 5410816
+5451776 |   0.388 |   0.450 |   0.171 |   0.272 |    0.29 | 77.6676 |  1.00 | LEARN
+5492736 |   0.481 |   0.420 |   0.185 |   0.280 |    0.35 | 50.6533 |  1.00 | LEARN
+5533696 |   0.421 |   0.434 |   0.182 |   0.269 |    0.30 | 73.7658 |  1.00 | LEARN
+  >> Checkpoint saved at step 5533696
+5574656 |   0.426 |   0.438 |   0.172 |   0.275 |    0.26 | 63.7935 |  1.00 | LEARN
+5615616 |   0.475 |   0.415 |   0.170 |   0.264 |    0.41 | 77.4405 |  1.00 | LEARN
+5656576 |   0.521 |   0.377 |   0.158 |   0.256 |    0.32 | 68.5522 |  1.00 | TRYING
+  >> Checkpoint saved at step 5656576
+5697536 |   0.485 |   0.413 |   0.180 |   0.262 |    0.25 | 51.8207 |  1.00 | LEARN
+5738496 |   0.399 |   0.429 |   0.192 |   0.284 |    0.28 | 72.3238 |  1.00 | LEARN
+5779456 |   0.534 |   0.393 |   0.164 |   0.259 |    0.29 | 80.1796 |  1.00 | TRYING
+  >> Checkpoint saved at step 5779456
+5820416 |   0.442 |   0.435 |   0.181 |   0.266 |    0.25 | 91.0540 |  1.00 | LEARN
+5861376 |   0.503 |   0.443 |   0.157 |   0.263 |    0.36 | 82.1475 |  1.00 | LEARN
+5902336 |   0.469 |   0.387 |   0.178 |   0.265 |    0.31 | 74.8851 |  1.00 | TRYING
+  >> Checkpoint saved at step 5902336
+5943296 |   0.505 |   0.436 |   0.164 |   0.266 |    0.31 | 90.3281 |  1.00 | LEARN
+5984256 |   0.500 |   0.398 |   0.163 |   0.279 |    0.39 | 36.4137 |  1.00 | TRYING
+6025216 |   0.551 |   0.378 |   0.163 |   0.254 |    0.20 | 77.5208 |  1.00 | TRYING
+  >> Checkpoint saved at step 6025216
+6066176 |   0.546 |   0.410 |   0.164 |   0.259 |    0.74 | 55.0435 |  1.00 | LEARN
+6107136 |   0.523 |   0.396 |   0.173 |   0.264 |    0.32 | 51.0268 |  1.00 | TRYING
+6148096 |   0.595 |   0.376 |   0.157 |   0.250 |    0.19 | 47.9670 |  1.00 | TRYING
+  >> New best! Reward: 0.595
+  >> New best tracking! Error sum: 0.430
+  >> Checkpoint saved at step 6148096
+6189056 |   0.545 |   0.374 |   0.170 |   0.265 |    0.33 | 78.0967 |  1.00 | TRYING
+6230016 |   0.432 |   0.421 |   0.174 |   0.276 |    0.55 | 72.5347 |  1.00 | LEARN
+6270976 |   0.541 |   0.389 |   0.154 |   0.244 |    0.26 | 68.2508 |  1.00 | TRYING
+  >> Checkpoint saved at step 6270976
+6311936 |   0.478 |   0.417 |   0.169 |   0.258 |    0.28 | 67.8848 |  1.00 | LEARN
+6352896 |   0.474 |   0.431 |   0.169 |   0.257 |    0.23 | 49.6248 |  1.00 | LEARN
+6393856 |   0.514 |   0.412 |   0.175 |   0.259 |    0.31 | 58.3857 |  1.00 | LEARN
+  >> Checkpoint saved at step 6393856
+6434816 |   0.489 |   0.429 |   0.181 |   0.250 |    0.37 | 74.9422 |  1.00 | LEARN
+6475776 |   0.472 |   0.446 |   0.160 |   0.249 |    0.43 | 62.5620 |  1.00 | LEARN
+6516736 |   0.526 |   0.416 |   0.166 |   0.245 |    0.36 | 71.1614 |  1.00 | LEARN
+  >> Checkpoint saved at step 6516736
+6557696 |   0.490 |   0.429 |   0.170 |   0.254 |    0.30 | 50.0699 |  1.00 | LEARN
+6598656 |   0.478 |   0.425 |   0.175 |   0.254 |    0.33 | 56.8571 |  1.00 | LEARN
+6639616 |   0.515 |   0.414 |   0.172 |   0.253 |    0.33 | 68.2839 |  1.00 | LEARN
+  >> Checkpoint saved at step 6639616
+6680576 |   0.490 |   0.438 |   0.176 |   0.252 |    0.35 | 63.0047 |  1.00 | LEARN
+6721536 |   0.524 |   0.413 |   0.179 |   0.251 |    0.23 | 68.1757 |  1.00 | LEARN
+6762496 |   0.570 |   0.367 |   0.176 |   0.241 |    0.21 | 65.4426 |  1.00 | TRYING
+  >> Checkpoint saved at step 6762496
+6803456 |   0.573 |   0.409 |   0.167 |   0.236 |    0.23 | 35.6366 |  1.00 | LEARN
+6844416 |   0.568 |   0.379 |   0.179 |   0.246 |    0.41 | 59.0903 |  1.00 | TRYING
+6885376 |   0.583 |   0.398 |   0.157 |   0.253 |    0.33 | 47.5847 |  1.00 | TRYING
+  >> Checkpoint saved at step 6885376
+6926336 |   0.519 |   0.405 |   0.176 |   0.251 |    0.28 | 79.1773 |  1.00 | LEARN
+6967296 |   0.545 |   0.413 |   0.158 |   0.249 |    0.33 | 33.7560 |  1.00 | LEARN
+7008256 |   0.624 |   0.379 |   0.158 |   0.237 |    0.23 | 46.0057 |  1.00 | TRYING
+  >> New best! Reward: 0.624
+  >> New best tracking! Error sum: 0.427
+  >> Checkpoint saved at step 7008256
+7049216 |   0.561 |   0.378 |   0.166 |   0.253 |    0.34 | 58.0715 |  1.00 | TRYING
+7090176 |   0.472 |   0.437 |   0.178 |   0.259 |    0.37 | 40.3142 |  1.00 | LEARN
+7131136 |   0.505 |   0.417 |   0.182 |   0.255 |    0.35 | 72.4727 |  1.00 | LEARN
+  >> Checkpoint saved at step 7131136
+7172096 |   0.598 |   0.375 |   0.155 |   0.235 |    0.28 | 99.8197 |  1.00 | TRYING
+7213056 |   0.506 |   0.438 |   0.155 |   0.239 |    0.34 | 66.1950 |  1.00 | LEARN
+7254016 |   0.565 |   0.408 |   0.139 |   0.247 |    0.36 | 58.9045 |  1.00 | LEARN
+  >> Checkpoint saved at step 7254016
+7294976 |   0.568 |   0.399 |   0.149 |   0.247 |    0.36 | 47.1331 |  1.00 | TRYING
+7335936 |   0.629 |   0.387 |   0.139 |   0.232 |    0.27 | 45.2721 |  1.00 | TRYING
+  >> New best! Reward: 0.629
+  >> New best tracking! Error sum: 0.418
+7376896 |   0.576 |   0.407 |   0.152 |   0.238 |    0.22 | 65.4136 |  1.00 | LEARN
+  >> Checkpoint saved at step 7376896
+7417856 |   0.418 |   0.477 |   0.170 |   0.251 |    0.44 | 69.1069 |  1.00 | LEARN
+7458816 |   0.524 |   0.433 |   0.172 |   0.244 |    0.32 | 67.1583 |  1.00 | LEARN
+7499776 |   0.569 |   0.411 |   0.158 |   0.230 |    0.30 | 73.3844 |  1.00 | LEARN
+  >> Checkpoint saved at step 7499776
+7540736 |   0.559 |   0.379 |   0.180 |   0.248 |    0.36 | 79.2130 |  1.00 | TRYING
+7581696 |   0.644 |   0.401 |   0.149 |   0.232 |    0.28 | 37.1214 |  1.00 | LEARN
+  >> New best! Reward: 0.644
+  >> New best tracking! Error sum: 0.412
+7622656 |   0.545 |   0.417 |   0.175 |   0.238 |    0.25 | 44.6580 |  1.00 | LEARN
+  >> Checkpoint saved at step 7622656
+7663616 |   0.531 |   0.418 |   0.167 |   0.236 |    0.48 | 64.5431 |  1.00 | LEARN
+7704576 |   0.585 |   0.410 |   0.165 |   0.232 |    0.25 | 59.8409 |  1.00 | LEARN
+7745536 |   0.493 |   0.449 |   0.165 |   0.239 |    0.31 | 40.5862 |  1.00 | LEARN
+  >> Checkpoint saved at step 7745536
+7786496 |   0.646 |   0.382 |   0.141 |   0.237 |    0.24 | 72.7707 |  1.00 | TRYING
+  >> New best! Reward: 0.646
+7827456 |   0.560 |   0.415 |   0.154 |   0.238 |    0.49 | 83.5756 |  1.00 | LEARN
+7868416 |   0.579 |   0.388 |   0.154 |   0.238 |    0.25 | 66.5088 |  1.00 | TRYING
+  >> Checkpoint saved at step 7868416
+7909376 |   0.628 |   0.354 |   0.173 |   0.235 |    0.26 | 75.7995 |  1.00 | TRYING
+7950336 |   0.586 |   0.382 |   0.171 |   0.236 |    0.31 | 78.6990 |  1.00 | TRYING
+7991296 |   0.611 |   0.380 |   0.154 |   0.231 |    0.38 | 105.0138 |  1.00 | TRYING
+  >> Checkpoint saved at step 7991296
+========================================================================================================================
+Training complete in 3726.8s (compilation: 87.5s)
+Command ranges: vx=[-2.00,2.00], vy=[-1.00,1.00], yaw=[-1.50,1.50] | zero_prob=(0.1, 0.7, 0.5) interval=(60, 140)
+====================================================================================================
+Training complete in 3726.8s (compile: 87.5s)
+Curriculum: grace=0, curriculum_steps=1, terrain=OFF, terrain_flat_prob=0.2, terrain_slope_max=5.0 deg, terrain_bump_std=0.0
+Best reward: 0.646
+Best tracking error sum: 0.412
+Log has 196 entries, 16 columns
+Plot saved to training_runs/shac_20260818_000906/log_plot.png
+
+=== Training Summary ===
+Steps: 4096 -> 7991296
+Final reward: 0.611 (best: 0.646)
+Final per-env squared tracking error (last 20 logs):
+  vx:  0.327
+  vy:  0.059
+  yaw: 0.098
+  Combined RMSE: 0.695
+Final VG loss: 0.0000
+Final actor grad:  0.38
+Final critic loss: 105.0138
+Loading policy from training_runs/shac_20260818_000906/policy_best_tracking.pkl
+  Loaded hparams: action_scale=0.5
+  Commands: vx=(-2.0, 2.0), vy=(-1.0, 1.0), yaw=(-1.5, 1.5)
+  XML dof_damping: ['2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000', '2.0000']
+  Nominal actuator gains: kp=35.0, kd=0.5 (total damping per joint = kd + dof_damping = 2.5)
+  Torso body: 'base' -> id 1
+  Domain randomization: friction=(0.5, 2.0), mass=(0.85, 1.15), kp=(25.0, 45.0), kd=(0.3, 0.7), com_offset=+/-(0.05, 0.05, 0.04)
+  Implicit terrain: max_slope=5.0 deg (~0.85 m/s^2 along-slope), flat_prob=0.2
+  Foot sites: ['FL_foot', 'FR_foot', 'RL_foot', 'RR_foot'] -> ids [1, 2, 3, 4]
+  Foot geoms: ['FL', 'FR', 'RL', 'RR'] -> ids [20, 32, 44, 56]Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/a/文档/diffloco/open-diffloco-main/src/main.py", line 538, in <module>
+    main()
+  File "/home/a/文档/diffloco/open-diffloco-main/src/main.py", line 532, in main
+    _run_go2(args)
+  File "/home/a/文档/diffloco/open-diffloco-main/src/main.py", line 491, in _run_go2
+    visualize(policy_path)
+  File "/home/a/文档/diffloco/open-diffloco-main/src/visualization/go2.py", line 514, in visualize
+    media.write_video(save_path, frames, fps=int(1.0 / env.dt))
+  File "/home/a/文档/diffloco/open-diffloco-main/.conda/lib/python3.11/site-packages/mediapy/__init__.py", line 1851, in write_video
+    with VideoWriter(path, shape=shape, dtype=dtype, **kwargs) as writer:
+  File "/home/a/文档/diffloco/open-diffloco-main/.conda/lib/python3.11/site-packages/mediapy/__init__.py", line 1705, in __enter__
+    self._popen = _run_ffmpeg(
+                  ^^^^^^^^^^^^
+  File "/home/a/文档/diffloco/open-diffloco-main/.conda/lib/python3.11/site-packages/mediapy/__init__.py", line 1239, in _run_ffmpeg
+    ffmpeg_path = _get_ffmpeg_path()
+                  ^^^^^^^^^^^^^^^^^^
+  File "/home/a/文档/diffloco/open-diffloco-main/.conda/lib/python3.11/site-packages/mediapy/__init__.py", line 1179, in _get_ffmpeg_path
+    raise RuntimeError(
+RuntimeError: Program 'ffmpeg' is not found; perhaps install ffmpeg using 'apt install ffmpeg'.
+
+  Foot ground reference z=0.0036m (per-foot: ['0.0036', '0.0036', '0.0036', '0.0036'])
+Go2Env initialized:
+  actor_obs=10x45=450, critic_obs_dim=49
+  cmd_vel_x=(-2.0, 2.0), cmd_vel_y=(-1.0, 1.0), cmd_yaw_rate=(-1.5, 1.5)
+  cmd_zero_prob=(0.1, 0.7, 0.5), random command interval=(60, 140) steps (~2.0s mean)
+  action_scale=0.5
+  max_episode_length=1000000000 (20000000.0s)
+
+Evaluation rollout: 1750 steps = 35.0s (7 segments, 5.0s each)
+  [  0.0s -   5.0s]  standing: vx=+0.00  vy=+0.00  yaw=+0.00
+  [  5.0s -  10.0s]   vx only: vx=+1.00  vy=+0.00  yaw=+0.00
+  [ 10.0s -  15.0s]   vy only: vx=+0.00  vy=+0.30  yaw=+0.00
+  [ 15.0s -  20.0s]  yaw only: vx=+0.00  vy=+0.00  yaw=+0.80
+  [ 20.0s -  25.0s] backwards: vx=-0.30  vy=+0.00  yaw=+0.00
+  [ 25.0s -  30.0s]    random: vx=+0.50  vy=+0.00  yaw=-0.40
+  [ 30.0s -  35.0s]    random: vx=+0.00  vy=+0.10  yaw=+0.30
+  t=  5.0s  MAE: vx=0.007  vy=0.003  yaw=0.024
+  t= 10.0s  MAE: vx=0.202  vy=0.041  yaw=0.080
+  t= 15.0s  MAE: vx=0.035  vy=0.217  yaw=0.038
+  t= 20.0s  MAE: vx=0.030  vy=0.026  yaw=0.066
+  t= 25.0s  MAE: vx=0.243  vy=0.014  yaw=0.036
+  t= 30.0s  MAE: vx=0.174  vy=0.051  yaw=0.032
+  t= 35.0s  MAE: vx=0.024  vy=0.078  yaw=0.042

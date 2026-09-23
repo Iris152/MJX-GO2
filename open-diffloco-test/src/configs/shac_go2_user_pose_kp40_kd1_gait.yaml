@@ -1,0 +1,43 @@
+algorithm: shac
+embodiment: go2
+variant: blind_nolinvel_nokinref
+model_xml: src/envs/go2/models/scene_mjx.xml
+
+# User-specified mirrored Go2 pose in simulation order:
+# [FL_hip, FL_thigh, FL_calf,
+#  FR_hip, FR_thigh, FR_calf,
+#  RL_hip, RL_thigh, RL_calf,
+#  RR_hip, RR_thigh, RR_calf]
+default_joint_pose:
+  [0.1, 0.8, -1.5,
+   -0.1, 0.8, -1.5,
+   0.1, 1.0, -1.5,
+   -0.1, 1.0, -1.5]
+default_base_height: 0.302
+target_base_height: 0.30
+
+steps: 8000000
+seed: 77
+unroll_length: 16
+num_envs: 256
+
+cmd_zero_prob: [0.1, 0.2, 0.3]
+cmd_stand_prob: 0.08
+cmd_vel_x_range: [-1.5, 1.5]
+cmd_vel_y_range: [-1.0, 1.0]
+cmd_yaw_rate_range: [-1.5, 1.5]
+track_weights: [1.0, 1.5, 1.0]
+
+# difficulty=0 starts at kp=40, kd=1; curriculum expands to these ranges.
+kp_range: [30.0, 50.0]
+kd_range: [0.8, 1.2]
+
+actor_lr: 0.005
+critic_lr: 0.0005
+critic_iterations: 16
+action_noise_std_start: 0.4
+action_noise_std_end: 0.1
+lr_decay: true
+no_curriculum: false
+curriculum_grace: 800000
+curriculum_steps: 6400000

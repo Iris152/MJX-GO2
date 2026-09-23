@@ -1,0 +1,17 @@
+algorithm: jave
+embodiment: go2
+variant: blind_nolinvel_nokinref
+model_xml: src/envs/go2/models/scene_mjx.xml
+steps: 8000000
+seed: 47
+unroll_length: 16
+cmd_zero_prob: [0.1, 0.2, 0.3]
+cmd_stand_prob: 0.08
+cmd_vel_x_range: [-1.5, 1.5]
+cmd_vel_y_range: [-1.0, 1.0]
+cmd_yaw_rate_range: [-1.5, 1.5]
+track_weights: [1.0, 1.5, 1.0]
+action_noise_std_start: 0.4
+action_noise_std_end: 0.1
+lr_decay: true
+no_curriculum: false

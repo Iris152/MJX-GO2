@@ -1,0 +1,24 @@
+# menagerie
+**/mujoco_menagerie/
+
+# Training and deploy files
+**/training_runs/
+**/bagfiles
+
+# Virtual environments
+**/.venv*/
+**/.conda/
+
+# Python/cache artifacts
+**/__pycache__/
+*.py[cod]
+
+# Build artifacts
+build/
+**/build/
+CMakeFiles/
+**/CMakeFiles/
+
+# Local logs and process markers
+*.log
+*.pid

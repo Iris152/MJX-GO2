@@ -1,0 +1,52 @@
+algorithm: shac
+embodiment: go2
+variant: blind_nolinvel_nokinref
+model_xml: src/envs/go2/models/scene_mjx.xml
+
+# 四条腿统一使用用户指定的目标姿态。
+# MuJoCo 顺序为 [FL, FR, RL, RR]；由于四条腿相同，顺序不会改变数值。
+default_joint_pose:
+  [0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5]
+
+# 0.330 m 使目标姿态下足端刚好接触地面；
+# 在重力和 PD 作用下会自然稳定到约 0.303 m。
+default_base_height: 0.330
+settled_joint_pose:
+  [0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5]
+settled_base_height: 0.330
+target_base_height: 0.303
+reset_settle_steps: 50
+
+steps: 8000000
+seed: 20260923
+unroll_length: 16
+num_envs: 256
+
+cmd_zero_prob: [0.1, 0.2, 0.3]
+cmd_stand_prob: 0.08
+cmd_vel_x_range: [-1.5, 1.5]
+cmd_vel_y_range: [-1.0, 1.0]
+cmd_yaw_rate_range: [-1.5, 1.5]
+track_weights: [1.0, 1.5, 1.0]
+
+# difficulty=0 时固定为 kp=40、kd=1；
+# 随课程逐渐扩展到完整随机化范围。
+kp_range: [30.0, 50.0]
+kd_range: [0.8, 1.2]
+no_curriculum: false
+curriculum_grace: 800000
+curriculum_steps: 6400000
+zero_difficulty_frac: 0.10
+
+actor_lr: 0.005
+critic_lr: 0.0005
+critic_iterations: 16
+action_noise_std_start: 0.12
+action_noise_std_end: 0.04
+lr_decay: true

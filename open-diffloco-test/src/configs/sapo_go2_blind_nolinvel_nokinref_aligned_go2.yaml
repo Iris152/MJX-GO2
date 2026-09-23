@@ -1,0 +1,44 @@
+algorithm: sapo
+embodiment: go2
+variant: blind_nolinvel_nokinref
+model_xml: src/envs/go2/models/scene_mjx.xml
+
+# SAPO method kept aligned with Mineral/Rewarped: H=32, TD(lambda), double critic,
+# squashed-Normal policy, entropy in actor return and critic targets.
+steps: 8000000
+seed: 91
+unroll_length: 32
+num_envs: 256
+
+# Match the current accepted Go2 command/task distribution.
+cmd_zero_prob: [0.1, 0.2, 0.3]
+cmd_stand_prob: 0.08
+cmd_vel_x_range: [-1.5, 1.5]
+cmd_vel_y_range: [-1.0, 1.0]
+cmd_yaw_rate_range: [-1.5, 1.5]
+track_weights: [1.0, 1.5, 1.0]
+
+# Keep the SHAC/AHAC curriculum and physics distribution for an apples-to-apples
+# Go2 comparison; SAPO's stochastic policy supplies exploration internally.
+actor_lr: 0.0015
+critic_lr: 0.00075
+critic_iterations: 16
+lr_decay: true
+no_curriculum: false
+curriculum_grace: 800000
+curriculum_steps: 6400000
+
+# Use a medium Go2 network: larger than the original Ant/Jumper setting while
+# keeping MJX reverse-mode cost practical for a full 8M-step run.
+sapo_init_alpha: 1.0
+sapo_target_entropy_scalar: 0.5
+sapo_alpha_lr: 0.002
+sapo_alpha_betas: [0.7, 0.95]
+sapo_log_std_init: -1.0
+sapo_min_log_std: -5.0
+sapo_max_log_std: 2.0
+sapo_actor_hidden: [256, 128, 64]
+sapo_critic_hidden: [256, 128, 64]
+sapo_max_grad_norm: 0.5
+sapo_per_env_grad_clip: 15.0
+sapo_weight_decay: 0.0

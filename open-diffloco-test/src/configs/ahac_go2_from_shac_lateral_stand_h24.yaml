@@ -1,0 +1,26 @@
+algorithm: ahac
+embodiment: go2
+variant: blind_nolinvel_nokinref
+model_xml: src/envs/go2/models/scene_mjx.xml
+steps: 10500000
+seed: 51
+resume: training_runs/shac_20260820_002033/policy_best_tracking.pkl
+unroll_length: 24
+cmd_zero_prob: [0.1, 0.2, 0.3]
+cmd_stand_prob: 0.08
+cmd_vel_x_range: [-1.5, 1.5]
+cmd_vel_y_range: [-1.0, 1.0]
+cmd_yaw_rate_range: [-1.5, 1.5]
+track_weights: [1.1, 1.5, 1.0]
+actor_lr: 0.002
+critic_lr: 0.0002
+action_noise_std_start: 0.12
+action_noise_std_end: 0.03
+lr_decay: true
+no_curriculum: false
+ahac_contact_force_threshold: 4.5
+ahac_contact_delta_threshold: 3.5
+ahac_penalty_weight: 0.005
+ahac_min_gradient_steps: 8
+ahac_reset_optimizer_on_resume: true
+ahac_reset_best_on_resume: true

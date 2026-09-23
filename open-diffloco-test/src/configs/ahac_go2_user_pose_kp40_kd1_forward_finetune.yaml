@@ -1,0 +1,57 @@
+algorithm: ahac
+embodiment: go2
+variant: blind_nolinvel_nokinref
+model_xml: src/envs/go2/models/scene_mjx.xml
+
+steps: 4500000
+seed: 131
+unroll_length: 16
+num_envs: 256
+
+default_joint_pose:
+  [0.1, 0.8, -1.5,
+   -0.1, 0.8, -1.5,
+   0.1, 1.0, -1.5,
+   -0.1, 1.0, -1.5]
+default_base_height: 0.302
+settled_joint_pose:
+  [0.243459, 0.787809, -1.658460,
+   -0.243459, 0.787809, -1.658460,
+   0.187164, 1.051113, -1.574088,
+   -0.187164, 1.051113, -1.574088]
+settled_base_height: 0.273485
+reset_settle_steps: 0
+target_base_height: 0.30
+
+# 正向专项微调：集中学习 +vx gait，保留少量原地站立。
+cmd_zero_prob: [0.0, 0.55, 0.65]
+cmd_stand_prob: 0.05
+cmd_vel_x_range: [0.2, 1.5]
+cmd_vel_y_range: [-0.3, 0.3]
+cmd_yaw_rate_range: [-0.6, 0.6]
+track_weights: [2.0, 0.7, 1.0]
+
+kp_range: [30.0, 50.0]
+kd_range: [0.8, 1.2]
+no_curriculum: false
+curriculum_grace: 800000
+curriculum_steps: 6400000
+zero_difficulty_frac: 0.10
+
+actor_lr: 0.003
+critic_lr: 0.0005
+critic_iterations: 8
+action_noise_std_start: 0.18
+action_noise_std_end: 0.06
+lr_decay: true
+
+ahac_steps_min: 8
+ahac_steps_max: 16
+ahac_initial_horizon: 8
+ahac_lambd_lr: 0.02
+ahac_horizon_contact_threshold: 0.10
+ahac_contact_force_threshold: 4.5
+ahac_contact_delta_threshold: 3.5
+ahac_penalty_weight: 0.0
+ahac_min_gradient_steps: 8
+ahac_contact_truncation: false

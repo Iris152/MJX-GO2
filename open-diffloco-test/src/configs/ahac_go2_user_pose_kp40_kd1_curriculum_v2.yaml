@@ -1,0 +1,62 @@
+algorithm: ahac
+embodiment: go2
+variant: blind_nolinvel_nokinref
+model_xml: src/envs/go2/models/scene_mjx.xml
+
+# 目标训练规模；探针阶段可用命令行 --steps 覆盖。
+steps: 8000000
+seed: 97
+unroll_length: 16
+num_envs: 256
+
+# 初始姿态，顺序严格对应 MuJoCo qpos[7:]。
+default_joint_pose:
+  [0.1, 0.8, -1.5,
+   -0.1, 0.8, -1.5,
+   0.1, 1.0, -1.5,
+   -0.1, 1.0, -1.5]
+default_base_height: 0.302
+settled_joint_pose:
+  [0.243459, 0.787809, -1.658460,
+   -0.243459, 0.787809, -1.658460,
+   0.187164, 1.051113, -1.574088,
+   -0.187164, 1.051113, -1.574088]
+settled_base_height: 0.273485
+reset_settle_steps: 0
+target_base_height: 0.28
+
+# 命令采样与速度跟踪权重。
+cmd_zero_prob: [0.1, 0.2, 0.3]
+cmd_stand_prob: 0.08
+cmd_vel_x_range: [-1.5, 1.5]
+cmd_vel_y_range: [-1.0, 1.0]
+cmd_yaw_rate_range: [-1.5, 1.5]
+track_weights: [1.00, 1.50, 1.00]
+
+# 课程从名义姿态开始：difficulty=0 时 kp=40、kd=1。
+kp_range: [30.0, 50.0]
+kd_range: [0.8, 1.2]
+no_curriculum: false
+curriculum_grace: 800000
+curriculum_steps: 6400000
+zero_difficulty_frac: 0.10
+
+# 优化与探索。
+actor_lr: 0.005
+critic_lr: 0.0005
+critic_iterations: 16
+action_noise_std_start: 0.35
+action_noise_std_end: 0.08
+lr_decay: true
+
+# AHAC：从较短 horizon 开始，再根据接触指标自适应增加到 16。
+ahac_steps_min: 8
+ahac_steps_max: 16
+ahac_initial_horizon: 8
+ahac_lambd_lr: 0.02
+ahac_horizon_contact_threshold: 0.10
+ahac_contact_force_threshold: 4.5
+ahac_contact_delta_threshold: 3.5
+ahac_penalty_weight: 0.0
+ahac_min_gradient_steps: 8
+ahac_contact_truncation: false
