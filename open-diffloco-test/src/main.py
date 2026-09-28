@@ -54,6 +54,14 @@ GO2_DEFAULTS = {
     "default_base_height": None,
     "settled_joint_pose": None,
     "settled_base_height": None,
+    "policy_joint_pose": None,
+    "prone_joint_pose": None,
+    "prone_base_height": 0.057,
+    "prone_hold_steps": 25,
+    "standup_duration": 3.6,
+    "standup_kp_start": 20.0,
+    "standup_kp_end": 50.0,
+    "standup_kd": 3.5,
     "target_base_height": 0.3,
     "reset_settle_steps": 0,
     "action_noise_std_start": None,
@@ -724,12 +732,23 @@ def _run_go2(args):
                 "default_base_height",
                 "settled_joint_pose",
                 "settled_base_height",
+                "policy_joint_pose",
                 "target_base_height",
                 "reset_settle_steps",
             ]:
                 optional_value = getattr(args, optional_key)
                 if optional_value is not None:
                     train_kwargs[optional_key] = optional_value
+        if args.algorithm == "shac" and args.prone_joint_pose is not None:
+            train_kwargs.update(
+                prone_joint_pose=args.prone_joint_pose,
+                prone_base_height=args.prone_base_height,
+                prone_hold_steps=args.prone_hold_steps,
+                standup_duration=args.standup_duration,
+                standup_kp_start=args.standup_kp_start,
+                standup_kp_end=args.standup_kp_end,
+                standup_kd=args.standup_kd,
+            )
         if args.action_noise_std_start is not None:
             train_kwargs["action_noise_std_start"] = args.action_noise_std_start
         if args.action_noise_std_end is not None:

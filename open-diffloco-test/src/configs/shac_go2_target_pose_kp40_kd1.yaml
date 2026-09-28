@@ -3,16 +3,30 @@ embodiment: go2
 variant: blind_nolinvel_nokinref
 model_xml: src/envs/go2/models/scene_mjx.xml
 
-# 四条腿统一使用用户指定的目标姿态。
-# MuJoCo 顺序为 [FL, FR, RL, RR]；由于四条腿相同，顺序不会改变数值。
+# 策略目标：四条腿统一使用用户指定的站立目标。
+# MuJoCo 顺序为 [FL, FR, RL, RR]。
 default_joint_pose:
   [0.0, 0.8, -1.5,
    0.0, 0.8, -1.5,
    0.0, 0.8, -1.5,
    0.0, 0.8, -1.5]
 
-# 0.330 m 使目标姿态下足端刚好接触地面；
-# 在重力和 PD 作用下会自然稳定到约 0.303 m。
+# 启动时从腹部贴近地面的折叠姿态，经实机控制器同款 tanh 轨迹站起。
+# 折叠姿态中的髋外展角采用左右镜像符号，避免把单腿朝向不对称带入训练。
+prone_joint_pose:
+  [0.35, 1.36, -2.65,
+   -0.35, 1.36, -2.65,
+   0.50, 1.36, -2.65,
+   -0.50, 1.36, -2.65]
+prone_base_height: 0.057
+prone_hold_steps: 25
+standup_duration: 3.6
+standup_kp_start: 20.0
+standup_kp_end: 100.0
+standup_kd: 6.0
+
+# 训练和部署都以几何站立目标作为策略零点。起立结束后用站起增益
+# 短暂保持目标，不再把低增益重力沉降姿态当作标准站姿。
 default_base_height: 0.330
 settled_joint_pose:
   [0.0, 0.8, -1.5,
@@ -20,8 +34,14 @@ settled_joint_pose:
    0.0, 0.8, -1.5,
    0.0, 0.8, -1.5]
 settled_base_height: 0.330
-target_base_height: 0.303
-reset_settle_steps: 50
+# Locomotion policy reference. Zero action commands the stand-up target.
+policy_joint_pose:
+  [0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5]
+target_base_height: 0.314
+reset_settle_steps: 100
 
 steps: 8000000
 seed: 20260923
@@ -39,6 +59,7 @@ track_weights: [1.0, 1.5, 1.0]
 # 随课程逐渐扩展到完整随机化范围。
 kp_range: [30.0, 50.0]
 kd_range: [0.8, 1.2]
+com_offset: [0.0, 0.0, 0.02]
 no_curriculum: false
 curriculum_grace: 800000
 curriculum_steps: 6400000

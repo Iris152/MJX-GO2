@@ -106,8 +106,8 @@ public:
 
   // Smooth stand/sit gains. The high-gain linear Unitree example vibrates in
   // sim.
-  static constexpr double STANDUP_KP = 50.0;
-  static constexpr double STANDUP_KD = 3.5;
+  static constexpr double STANDUP_KP = 100.0;
+  static constexpr double STANDUP_KD = 6.0;
   static constexpr double STANDUP_KP_START = 20.0;
   static constexpr double STANDUP_TANH_SCALE = 1.2;
   static constexpr double SAFETY_TILT_MAX = 1.05;
@@ -139,6 +139,9 @@ private:
 
   // Observation + safety
   Eigen::VectorXd build_obs();
+  Eigen::VectorXd project_standstill_action(
+      const Eigen::VectorXd &action, const Eigen::Vector3d &cmd) const;
+  bool is_standstill_command(const Eigen::Vector3d &cmd) const;
   bool check_safety();
 
   // State transitions

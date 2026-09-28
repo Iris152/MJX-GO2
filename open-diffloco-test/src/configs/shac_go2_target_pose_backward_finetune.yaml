@@ -1,0 +1,44 @@
+algorithm: shac
+embodiment: go2
+variant: blind_nolinvel_nokinref
+model_xml: src/envs/go2/models/scene_mjx.xml
+
+default_joint_pose:
+  [0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5]
+default_base_height: 0.330
+settled_joint_pose:
+  [0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5]
+settled_base_height: 0.330
+target_base_height: 0.303
+reset_settle_steps: 50
+
+# 该配置用于从已收敛策略做后退步态专项微调。
+steps: 4000000
+seed: 20260924
+unroll_length: 16
+num_envs: 256
+
+cmd_zero_prob: [0.1, 0.2, 0.3]
+cmd_stand_prob: 0.08
+cmd_vel_x_range: [-1.5, 1.5]
+cmd_vel_y_range: [-1.0, 1.0]
+cmd_yaw_rate_range: [-1.5, 1.5]
+track_weights: [1.0, 1.5, 1.0]
+
+kp_range: [30.0, 50.0]
+kd_range: [0.8, 1.2]
+no_curriculum: true
+zero_difficulty_frac: 0.10
+
+actor_lr: 0.001
+critic_lr: 0.0002
+critic_iterations: 8
+action_noise_std_start: 0.04
+action_noise_std_end: 0.015
+lr_decay: true

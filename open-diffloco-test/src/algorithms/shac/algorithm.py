@@ -81,6 +81,14 @@ def train(
     default_base_height: float = None,
     settled_joint_pose: tuple = None,
     settled_base_height: float = None,
+    policy_joint_pose: tuple = None,
+    prone_joint_pose: tuple = None,
+    prone_base_height: float = 0.057,
+    prone_hold_steps: int = 25,
+    standup_duration: float = 3.6,
+    standup_kp_start: float = 20.0,
+    standup_kp_end: float = 50.0,
+    standup_kd: float = 3.5,
     target_base_height: float = 0.3,
     reset_settle_steps: int = 0,
     # Commands
@@ -187,8 +195,30 @@ def train(
                 default_joint_pose = resumed_hparams["default_joint_pose"]
             if "default_base_height" in resumed_hparams:
                 default_base_height = resumed_hparams["default_base_height"]
+            if "settled_joint_pose" in resumed_hparams:
+                settled_joint_pose = resumed_hparams["settled_joint_pose"]
+            if "settled_base_height" in resumed_hparams:
+                settled_base_height = resumed_hparams["settled_base_height"]
+            if "policy_joint_pose" in resumed_hparams:
+                policy_joint_pose = resumed_hparams["policy_joint_pose"]
+            if "prone_joint_pose" in resumed_hparams:
+                prone_joint_pose = resumed_hparams["prone_joint_pose"]
+            if "prone_base_height" in resumed_hparams:
+                prone_base_height = resumed_hparams["prone_base_height"]
+            if "prone_hold_steps" in resumed_hparams:
+                prone_hold_steps = resumed_hparams["prone_hold_steps"]
+            if "standup_duration" in resumed_hparams:
+                standup_duration = resumed_hparams["standup_duration"]
+            if "standup_kp_start" in resumed_hparams:
+                standup_kp_start = resumed_hparams["standup_kp_start"]
+            if "standup_kp_end" in resumed_hparams:
+                standup_kp_end = resumed_hparams["standup_kp_end"]
+            if "standup_kd" in resumed_hparams:
+                standup_kd = resumed_hparams["standup_kd"]
             if "target_base_height" in resumed_hparams:
                 target_base_height = resumed_hparams["target_base_height"]
+            if "reset_settle_steps" in resumed_hparams:
+                reset_settle_steps = resumed_hparams["reset_settle_steps"]
             if "kp_range" in resumed_hparams:
                 kp_range = tuple(resumed_hparams["kp_range"])
             if "kd_range" in resumed_hparams:
@@ -237,6 +267,14 @@ def train(
         default_base_height=default_base_height,
         settled_joint_pose=settled_joint_pose,
         settled_base_height=settled_base_height,
+        policy_joint_pose=policy_joint_pose,
+        prone_joint_pose=prone_joint_pose,
+        prone_base_height=prone_base_height,
+        prone_hold_steps=prone_hold_steps,
+        standup_duration=standup_duration,
+        standup_kp_start=standup_kp_start,
+        standup_kp_end=standup_kp_end,
+        standup_kd=standup_kd,
         target_base_height=target_base_height,
         reset_settle_steps=reset_settle_steps,
         cmd_vel_x_range=cmd_vel_x_range,
@@ -310,6 +348,18 @@ def train(
         if settled_joint_pose is not None
         else None,
         "settled_base_height": settled_base_height,
+        "policy_joint_pose": list(policy_joint_pose)
+        if policy_joint_pose is not None
+        else None,
+        "prone_joint_pose": list(prone_joint_pose)
+        if prone_joint_pose is not None
+        else None,
+        "prone_base_height": prone_base_height,
+        "prone_hold_steps": prone_hold_steps,
+        "standup_duration": standup_duration,
+        "standup_kp_start": standup_kp_start,
+        "standup_kp_end": standup_kp_end,
+        "standup_kd": standup_kd,
         "target_base_height": target_base_height,
         "reset_settle_steps": reset_settle_steps,
         "cmd_vel_x_range": list(cmd_vel_x_range),
@@ -396,11 +446,10 @@ def train(
     actor_opt_state = actor_opt.init(actor_params)
     critic_opt_state = critic_opt.init(critic_params)
 
-    # Start each environment after the configured nominal pose has settled
-    # under its PD target. This prevents early exploration noise from turning
-    # the raw geometric reset into the locomotion training distribution.
+    # Begin locomotion only after the configured physical startup sequence.
     env_keys = jax.random.split(k3, num_envs)
-    env_state = jax.vmap(env.reset_stable)(env_keys, jp.zeros(num_envs))
+    reset_fn = env.reset_standup if env.use_prone_standup else env.reset_stable
+    env_state = jax.vmap(reset_fn)(env_keys, jp.zeros(num_envs))
 
     _push_interval_steps = max(int(round(push_interval_s / env.dt)), 1)
     _push_velocity_lo = jp.array(push_velocity_range[0], dtype=jp.float64)

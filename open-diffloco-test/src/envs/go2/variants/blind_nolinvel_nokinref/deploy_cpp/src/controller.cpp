@@ -414,6 +414,11 @@ void Go2Deploy::handle_walking() {
 
     Eigen::VectorXd obs = build_obs();
     Eigen::VectorXd action = (*policy_)(obs);
+    const Eigen::Vector3d cmd = get_cmd();
+    action = project_standstill_action(action, cmd);
+    const bool standstill = is_standstill_command(cmd);
+    if (standstill)
+      action.setZero();
     last_action_ = action;
 
     auto target_sim = policy_->get_target_joints(action);
@@ -441,10 +446,32 @@ void Go2Deploy::handle_walking() {
   }
 
   if (state_.load() == State::WALKING) {
+    const bool standstill = is_standstill_command(get_cmd());
+    const double active_kp = standstill ? STANDUP_KP : kp;
+    const double active_kd = standstill ? STANDUP_KD : kd;
     for (int i = 0; i < NUM_MOTORS; ++i)
       set_motor(i, static_cast<float>(walking_target_hw_(i)),
-                static_cast<float>(kp), 0.0f, static_cast<float>(kd), 0.0f);
+                static_cast<float>(active_kp), 0.0f,
+                static_cast<float>(active_kd), 0.0f);
   }
+}
+
+Eigen::VectorXd Go2Deploy::project_standstill_action(
+    const Eigen::VectorXd &action, const Eigen::Vector3d &cmd) const {
+  if (action.size() != NUM_MOTORS ||
+      (cmd.array().abs() >= 0.05).any()) {
+    return action;
+  }
+
+  Eigen::VectorXd mirrored(NUM_MOTORS);
+  mirrored << -action(3), action(4), action(5), -action(0), action(1),
+      action(2), -action(9), action(10), action(11), -action(6), action(7),
+      action(8);
+  return 0.5 * (action + mirrored);
+}
+
+bool Go2Deploy::is_standstill_command(const Eigen::Vector3d &cmd) const {
+  return (cmd.array().abs() < 0.05).all();
 }
 
 void Go2Deploy::handle_sitdown() {

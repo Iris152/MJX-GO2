@@ -3,6 +3,7 @@
 
 # Training and deploy files
 **/training_runs/
+**/training_logs/
 **/bagfiles
 
 # Virtual environments

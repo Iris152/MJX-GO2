@@ -119,6 +119,7 @@ def export(policy_path: str):
             "default_base_height",
             "settled_joint_pose",
             "settled_base_height",
+            "policy_joint_pose",
             "target_base_height",
         ]:
             if key in hp and hp[key] is not None:

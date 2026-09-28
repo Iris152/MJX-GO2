@@ -42,6 +42,14 @@ def _load_env_kwargs(policy_path: str) -> dict:
                 "default_base_height",
                 "settled_joint_pose",
                 "settled_base_height",
+                "policy_joint_pose",
+                "prone_joint_pose",
+                "prone_base_height",
+                "prone_hold_steps",
+                "standup_duration",
+                "standup_kp_start",
+                "standup_kp_end",
+                "standup_kd",
                 "target_base_height",
             ]:
                 if key in hparams and hparams[key] is not None:
@@ -300,7 +308,9 @@ def visualize_interactive(policy_path: str):
         return env_state.replace(data=new_data)
 
     rng = jax.random.PRNGKey(42)
-    env_state = env.reset(rng)
+    reset_fn = env.reset_standup if env.use_prone_standup else env.reset
+    jit_reset = jax.jit(reset_fn)
+    env_state = jit_reset(rng, jp.array(0.0))
 
     mj_data.qpos[:] = np.array(env_state.data.qpos)
     mj_data.qvel[:] = np.array(env_state.data.qvel)
@@ -324,7 +334,7 @@ def visualize_interactive(policy_path: str):
         """Reset environment to initial state."""
         nonlocal rng
         rng, key = jax.random.split(rng)
-        viewer_state["env_state"] = env.reset(key)
+        viewer_state["env_state"] = jit_reset(key, jp.array(0.0))
         viewer_state["step_count"] = 0
         viewer_state["history"] = []
         viewer_state["vel_ema"][:] = 0.0
@@ -526,7 +536,8 @@ def visualize(policy_path: str, num_steps: int = 1750, save_path: str = None):
         )
 
     rng, reset_key = jax.random.split(rng)
-    env_state = env.reset(reset_key)
+    reset_fn = env.reset_standup if env.use_prone_standup else env.reset
+    env_state = jax.jit(reset_fn)(reset_key, jp.array(0.0))
     frames = []
     tracking = {
         k: [] for k in ["time", "vx", "vy", "yaw", "cmd_vx", "cmd_vy", "cmd_yaw"]

@@ -34,6 +34,14 @@ class Go2Env:
         default_base_height: float = None,
         settled_joint_pose: tuple = None,
         settled_base_height: float = None,
+        policy_joint_pose: tuple = None,
+        prone_joint_pose: tuple = None,
+        prone_base_height: float = 0.057,
+        prone_hold_steps: int = 25,
+        standup_duration: float = 3.6,
+        standup_kp_start: float = 20.0,
+        standup_kp_end: float = 50.0,
+        standup_kd: float = 3.5,
         target_base_height: float = 0.3,
         # Commands
         cmd_vel_x_range: tuple = (-1.5, 1.5),
@@ -69,6 +77,17 @@ class Go2Env:
             settled_joint_pose: Optional 12-D actual standing pose after the
             default joint target has settled under gravity/contact.
             settled_base_height: Optional root z used with settled_joint_pose.
+            policy_joint_pose: Optional 12-D joint reference used by the
+            locomotion policy's zero action and joint-position observations.
+            When omitted for a prone stand-up setup, settled_joint_pose is used.
+            prone_joint_pose: Optional 12-D folded pose for the initial
+            prone-to-stand sequence, in MuJoCo order [FL, FR, RL, RR].
+            prone_base_height: Root z for the prone starting pose.
+            prone_hold_steps: Control cycles to stabilize the prone pose.
+            standup_duration: Duration of the smooth target interpolation.
+            standup_kp_start: Position gain at the start of the stand-up ramp.
+            standup_kp_end: Position gain at the end of the stand-up ramp.
+            standup_kd: Derivative gain during the stand-up ramp.
             target_base_height: Reward target for root height above ground.
             cmd_vel_x_range: (min, max) for forward velocity command (m/s)
             cmd_vel_y_range: (min, max) for lateral velocity command (m/s)
@@ -113,7 +132,7 @@ class Go2Env:
 
         self.init_qpos = jp.array(self.mj_model.keyframe("home").qpos)
         if default_joint_pose is None:
-            self.default_joints = self.init_qpos[7:]
+            self.target_joints = self.init_qpos[7:]
         else:
             default_joint_pose = jp.array(default_joint_pose, dtype=jp.float64)
             if default_joint_pose.shape == (3,):
@@ -123,15 +142,15 @@ class Go2Env:
                     "default_joint_pose must contain either 3 per-leg values "
                     "or 12 full-body values"
                 )
-            self.default_joints = default_joint_pose
-            self.init_qpos = self.init_qpos.at[7:].set(self.default_joints)
+            self.target_joints = default_joint_pose
+            self.init_qpos = self.init_qpos.at[7:].set(self.target_joints)
         if default_base_height is not None:
             self.init_qpos = self.init_qpos.at[2].set(float(default_base_height))
         self.use_settled_reset = (
             settled_joint_pose is not None or settled_base_height is not None
         )
         if settled_joint_pose is None:
-            self.settled_joints = self.default_joints
+            self.settled_joints = self.target_joints
         else:
             settled_joint_pose = jp.array(settled_joint_pose, dtype=jp.float64)
             if settled_joint_pose.shape == (3,):
@@ -145,10 +164,51 @@ class Go2Env:
         self.reset_qpos = self.init_qpos.at[7:].set(self.settled_joints)
         if settled_base_height is not None:
             self.reset_qpos = self.reset_qpos.at[2].set(float(settled_base_height))
+        self.use_prone_standup = prone_joint_pose is not None
+        if prone_joint_pose is None:
+            self.prone_joints = self.target_joints
+        else:
+            prone_joint_pose = jp.array(prone_joint_pose, dtype=jp.float64)
+            if prone_joint_pose.shape == (3,):
+                prone_joint_pose = jp.tile(prone_joint_pose, 4)
+            if prone_joint_pose.shape != (12,):
+                raise ValueError(
+                    "prone_joint_pose must contain either 3 per-leg values "
+                    "or 12 full-body values"
+                )
+            self.prone_joints = prone_joint_pose
+        if policy_joint_pose is None:
+            policy_joint_pose = (
+                self.settled_joints if self.use_prone_standup else self.target_joints
+            )
+        else:
+            policy_joint_pose = jp.array(policy_joint_pose, dtype=jp.float64)
+            if policy_joint_pose.shape == (3,):
+                policy_joint_pose = jp.tile(policy_joint_pose, 4)
+            if policy_joint_pose.shape != (12,):
+                raise ValueError(
+                    "policy_joint_pose must contain either 3 per-leg values "
+                    "or 12 full-body values"
+                )
+        self.policy_joints = policy_joint_pose
+        # Keep the existing internal name as the policy's control reference.
+        # The geometric stand-up target remains available as target_joints.
+        self.default_joints = self.policy_joints
+        self.prone_base_height = float(prone_base_height)
+        self.prone_hold_steps = max(int(prone_hold_steps), 0)
+        self.standup_duration = float(standup_duration)
+        if self.standup_duration <= 0:
+            raise ValueError("standup_duration must be positive")
+        self.standup_kp_start = float(standup_kp_start)
+        self.standup_kp_end = float(standup_kp_end)
+        self.standup_kd = float(standup_kd)
         self.target_base_height = float(target_base_height)
 
         self.n_frames = 5  # Physics substeps per control step
         self.dt = self.mj_model.opt.timestep * self.n_frames
+        self.standup_control_steps = max(
+            int(round(self.standup_duration / self.dt)), 1
+        )
 
         self.action_dim = 12
         self.action_scale = action_scale  # scalar, broadcast in step()
@@ -284,7 +344,8 @@ class Go2Env:
         )
         print(f"  action_scale={action_scale}")
         print(
-            f"  default_joints={[f'{float(v):.3f}' for v in self.default_joints]}, "
+            f"  target_joints={[f'{float(v):.3f}' for v in self.target_joints]}, "
+            f"policy_joints={[f'{float(v):.3f}' for v in self.policy_joints]}, "
             f"settled_joints={[f'{float(v):.3f}' for v in self.settled_joints]}, "
             f"default_base_height={float(self.init_qpos[2]):.3f}, "
             f"reset_base_height={float(self.reset_qpos[2]):.3f}, "
@@ -451,10 +512,29 @@ class Go2Env:
         )
         axis = jp.array([0.0, 0.0, 1.0])
         qpos = qpos.at[3:7].set(axis_angle_to_quat(axis, angle))
-        qpos = qpos.at[7:19].add(
+        joint_noise = (
             reset_noise_scale
             * 0.03
-            * (jax.random.uniform(keys[2], (12,)) - 0.5)
+            * (jax.random.uniform(keys[2], (6,)) - 0.5)
+        )
+        mirrored_joint_noise = jp.array(
+            [
+                joint_noise[0],
+                joint_noise[1],
+                joint_noise[2],
+                -joint_noise[0],
+                joint_noise[1],
+                joint_noise[2],
+                joint_noise[3],
+                joint_noise[4],
+                joint_noise[5],
+                -joint_noise[3],
+                joint_noise[4],
+                joint_noise[5],
+            ]
+        )
+        qpos = qpos.at[7:19].add(
+            mirrored_joint_noise
         )
 
         friction_raw = jax.random.uniform(
@@ -583,7 +663,7 @@ class Go2Env:
         model = self._get_randomized_model(state.info)
 
         def physics_step(data, _):
-            return mjx.step(model, data.replace(ctrl=self.default_joints)), None
+            return mjx.step(model, data.replace(ctrl=self.target_joints)), None
 
         data, _ = jax.lax.scan(
             physics_step,
@@ -601,6 +681,149 @@ class Go2Env:
         info = {
             **state.info,
             "last_act": jp.zeros(12),
+            "last_foot_pos": foot_pos,
+            "actor_obs_history": actor_obs_history,
+            "bootstrap_obs": obs,
+            "bootstrap_critic_obs": critic_obs,
+        }
+        return state.replace(data=data, obs=obs, info=info)
+
+    def _model_with_pd(self, model, kp, kd):
+        gainprm = model.actuator_gainprm.at[:, 0].set(kp)
+        biasprm = model.actuator_biasprm.at[:, 1].set(-kp)
+        biasprm = biasprm.at[:, 2].set(-kd)
+        return model.replace(actuator_gainprm=gainprm, actuator_biasprm=biasprm)
+
+    def _project_sagittal_action(self, action, cmd):
+        """Keep symmetric commands from acquiring a left/right bias.
+
+        Reflection across the sagittal plane flips hip-abduction signs and
+        swaps the corresponding left/right joints. The projection is applied
+        only while standing still. A walking policy must be allowed to use
+        alternating left/right phases even for a straight command.
+        """
+        mirrored = jp.array(
+            [
+                -action[3],
+                action[4],
+                action[5],
+                -action[0],
+                action[1],
+                action[2],
+                -action[9],
+                action[10],
+                action[11],
+                -action[6],
+                action[7],
+                action[8],
+            ]
+        )
+        standstill_command = jp.all(jp.abs(cmd) < 0.05)
+        return jp.where(standstill_command, 0.5 * (action + mirrored), action)
+
+    @staticmethod
+    def _is_standstill_command(cmd):
+        """Return true for the command region handled by the stand controller."""
+        return jp.all(jp.abs(cmd) < 0.05)
+
+    def reset_standup(
+        self, rng: jax.Array, difficulty: jax.Array = jp.array(0.0)
+    ) -> EnvState:
+        """Simulate the hardware-like prone-to-standing startup sequence."""
+        if not self.use_prone_standup:
+            return self.reset_stable(rng, difficulty)
+
+        state = self.reset(rng, difficulty)
+        model = self._get_randomized_model(state.info)
+        start_qpos = (
+            state.data.qpos.at[2]
+            .set(self.prone_base_height)
+            .at[7:]
+            .set(self.prone_joints)
+        )
+        data = state.data.replace(
+            qpos=start_qpos,
+            qvel=jp.zeros_like(state.data.qvel),
+            ctrl=self.prone_joints,
+        )
+
+        prone_model = self._model_with_pd(
+            model, self.standup_kp_start, self.standup_kd
+        )
+        data = mjx.forward(prone_model, data)
+
+        def physics_step(current_data, active_model, ctrl):
+            def substep(carry, _):
+                return mjx.step(active_model, carry.replace(ctrl=ctrl)), None
+
+            current_data, _ = jax.lax.scan(
+                substep, current_data, None, length=self.n_frames
+            )
+            return current_data
+
+        def hold_prone(current_data, _):
+            return physics_step(
+                current_data, prone_model, self.prone_joints
+            ), None
+
+        data, _ = jax.lax.scan(
+            hold_prone, data, None, length=self.prone_hold_steps
+        )
+
+        scale = self.standup_duration / 3.0
+
+        def standup_step(current_data, step_index):
+            phase = jp.tanh((step_index + 1) * self.dt / scale)
+            ctrl = self.prone_joints + phase * (
+                self.target_joints - self.prone_joints
+            )
+            kp = self.standup_kp_start + phase * (
+                self.standup_kp_end - self.standup_kp_start
+            )
+            active_model = self._model_with_pd(model, kp, self.standup_kd)
+            return physics_step(current_data, active_model, ctrl), None
+
+        data, _ = jax.lax.scan(
+            standup_step,
+            data,
+            jp.arange(self.standup_control_steps),
+        )
+
+        # Keep the geometric stand target with the same stiff gains used during
+        # the hardware-like stand-up. Do not let low locomotion damping turn
+        # the target into a different, crouched policy reference before the
+        # actor takes over.
+        settle_model = self._model_with_pd(
+            model, self.standup_kp_end, self.standup_kd
+        )
+
+        def settle_step(current_data, _):
+            return physics_step(
+                current_data, settle_model, self.target_joints
+            ), None
+
+        data, _ = jax.lax.scan(
+            settle_step,
+            data,
+            None,
+            length=self.reset_settle_steps,
+        )
+
+        info = {
+            **state.info,
+            "cmd": jp.zeros(3, dtype=state.info["cmd"].dtype),
+            "cmd_step": jp.array(0, dtype=jp.int32),
+            "last_act": jp.zeros(12),
+        }
+        foot_pos = data.site_xpos[self._foot_site_ids]
+        actor_frame = self._get_actor_obs(data, info)
+        actor_obs_history = jp.repeat(
+            actor_frame[None, :], self.actor_history_len, axis=0
+        )
+        obs = actor_obs_history.reshape(-1)
+        critic_obs = self._get_critic_obs(data, info)
+        info = {
+            **info,
             "last_foot_pos": foot_pos,
             "actor_obs_history": actor_obs_history,
             "bootstrap_obs": obs,
@@ -633,6 +856,9 @@ class Go2Env:
             "pen_joint": _z,
             "pen_stand_still": _z,
             "pen_stand_posture": _z,
+            "pen_stand_symmetry": _z,
+            "pen_gait_symmetry": _z,
+            "pen_stand_action_symmetry": _z,
             "pen_stand_action": _z,
             "pen_stand_contact": _z,
             "pen_foot_slip": _z,
@@ -647,7 +873,6 @@ class Go2Env:
             "foot_normal_FR": _z,
             "foot_normal_RL": _z,
             "foot_normal_RR": _z,
-            "pen_stand_symmetry": _z,
             "pen_vx_fwd_under": _z,
             "pen_tilt": _z,
         }
@@ -659,10 +884,22 @@ class Go2Env:
 
         NOTE: External disturbances are applied by the training rollout.
         """
+        standstill_command = self._is_standstill_command(state.info["cmd"])
         action = jp.clip(action, -1, 1).astype(jp.float64)
+        action = self._project_sagittal_action(action, state.info["cmd"])
+        # A zero command is a physical standing mode, not a locomotion action.
+        # Holding the geometric target with the stiff stand-up gains prevents
+        # gravity from turning the requested [0, 0.8, -1.5] pose into a low,
+        # asymmetric-looking crouch before the policy starts walking.
+        action = jp.where(standstill_command, jp.zeros_like(action), action)
         ctrl = self.default_joints + action * self.action_scale
 
         model = self._get_randomized_model(state.info)
+        hold_kp = jp.where(
+            standstill_command, self.standup_kp_end, state.info["kp"]
+        )
+        hold_kd = jp.where(standstill_command, self.standup_kd, state.info["kd"])
+        model = self._model_with_pd(model, hold_kp, hold_kd)
 
         # Physics simulation
         def physics_step(data, _):
@@ -735,6 +972,11 @@ class Go2Env:
         rng, reset_key, resample_key, interval_key = jax.random.split(
             state.info["rng"], 4
         )
+        # The physical prone-to-stand sequence is used when a policy session
+        # starts (and by the visualization reset). Rollout episode resets stay
+        # lightweight because this function is vmapped over all environments;
+        # simulating several seconds of stand-up at every ordinary step would
+        # dominate the training cost without changing steady-state learning.
         reset_state = self.reset(reset_key, state.info["difficulty"])
 
         # Apply done reset (swap in fresh episode state)
@@ -851,6 +1093,8 @@ class Go2Env:
             "pen_stand_still": rewards["pen_stand_still"],
             "pen_stand_posture": rewards["pen_stand_posture"],
             "pen_stand_symmetry": rewards["pen_stand_symmetry"],
+            "pen_gait_symmetry": rewards["pen_gait_symmetry"],
+            "pen_stand_action_symmetry": rewards["pen_stand_action_symmetry"],
             "pen_stand_action": rewards["pen_stand_action"],
             "pen_stand_contact": rewards["pen_stand_contact"],
             "pen_foot_slip": rewards["pen_foot_slip"],
@@ -982,11 +1226,10 @@ class Go2Env:
         tilt_xy = jp.sum(jp.square(gravity_proj[:2]))
         pen_tilt = -(2.0 + 4.0 * vx_fwd_active) * tilt_xy
 
-        # Joint regularization uses the actual gravity-settled stance. The PD
-        # action zero remains self.default_joints, but the measured joints at a
-        # stable stand naturally differ from that command because of contact and
-        # gravity.
-        correction = data.qpos[7:] - self.settled_joints
+        # Keep the policy close to the same geometric stand target used by the
+        # stand-up trajectory. The target is intentionally not replaced by the
+        # low-gain gravity-settled pose.
+        correction = data.qpos[7:] - self.default_joints
         correction_dev = jp.sum(jp.square(correction))
         pen_joint = correction_dev * -0.18
 
@@ -1008,7 +1251,21 @@ class Go2Env:
             + jp.square(qj[2] - qj[5])
             + jp.square(qj[8] - qj[11])
         )
-        pen_stand_symmetry = -0.6 * stand_weight * stand_symmetry
+        action_symmetry = (
+            jp.square(action[0] + action[3])
+            + jp.square(action[6] + action[9])
+            + jp.square(action[1] - action[4])
+            + jp.square(action[7] - action[10])
+            + jp.square(action[2] - action[5])
+            + jp.square(action[8] - action[11])
+        )
+        pen_stand_symmetry = -4.0 * stand_weight * stand_symmetry
+        pen_stand_action_symmetry = -1.5 * stand_weight * action_symmetry
+        # Do not penalize instantaneous left/right pose differences while
+        # walking. A normal trot has alternating phases, so its two sides are
+        # intentionally different at most control instants. Penalizing this
+        # term turns the learned gait into low-clearance foot sliding.
+        pen_gait_symmetry = jp.zeros_like(rew_vel_x)
         pen_stand_action = -0.12 * stand_weight * jp.sum(jp.square(action))
         pen_stand_action += -0.04 * stand_weight * jp.sum(jp.square(action - last_act))
 
@@ -1058,6 +1315,23 @@ class Go2Env:
             foot_contact_mean = contact_mean
             foot_slip_speed = slip_speed
 
+            # Backward walking otherwise has a cheap local solution in which
+            # the rearward body motion is produced mostly by stance-foot
+            # sliding. Give negative-vx commands an explicit swing/stance
+            # signal so all legs participate in a real gait.
+            backward_weight = jax.nn.sigmoid((-cmd[0] - 0.08) / 0.06)
+            rew_backward_clearance = (
+                0.75
+                * backward_weight
+                * jp.mean(swing_weight * clearance_score)
+            )
+            pen_backward_contact = -0.45 * backward_weight * jp.square(
+                jp.maximum(contact_mean - 0.65, 0.0) / 0.15
+            )
+            pen_backward_slip = -0.80 * backward_weight * (
+                slip_speed_sq + 0.4 * slip_speed
+            )
+
         return {
             "vel_x": rew_vel_x,
             "vel_y": rew_vel_y,
@@ -1078,10 +1352,27 @@ class Go2Env:
             "pen_stand_still": pen_stand_still,
             "pen_stand_posture": pen_stand_posture,
             "pen_stand_symmetry": pen_stand_symmetry,
+            "pen_gait_symmetry": pen_gait_symmetry,
+            "pen_stand_action_symmetry": pen_stand_action_symmetry,
             "pen_stand_action": pen_stand_action,
             "pen_stand_contact": pen_stand_contact,
             "pen_foot_slip": pen_foot_slip,
             "pen_contact_duty": pen_contact_duty,
+            "rew_backward_clearance": (
+                rew_backward_clearance
+                if foot_pos is not None and foot_vel is not None
+                else zero
+            ),
+            "pen_backward_contact": (
+                pen_backward_contact
+                if foot_pos is not None and foot_vel is not None
+                else zero
+            ),
+            "pen_backward_slip": (
+                pen_backward_slip
+                if foot_pos is not None and foot_vel is not None
+                else zero
+            ),
             "foot_clearance": rew_foot_clearance,
             "foot_clearance_mean": foot_clearance_mean,
             "foot_contact_mean": foot_contact_mean,
@@ -1109,10 +1400,15 @@ class Go2Env:
             + rewards["pen_stand_still"]
             + rewards["pen_stand_posture"]
             + rewards["pen_stand_symmetry"]
+            + rewards["pen_gait_symmetry"]
+            + rewards["pen_stand_action_symmetry"]
             + rewards["pen_stand_action"]
             + rewards["pen_stand_contact"]
             + rewards["pen_foot_slip"]
             + rewards["pen_contact_duty"]
+            + rewards["rew_backward_clearance"]
+            + rewards["pen_backward_contact"]
+            + rewards["pen_backward_slip"]
             + rewards["foot_clearance"]
         )
 

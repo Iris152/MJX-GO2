@@ -73,12 +73,14 @@ def evaluate_policy(
         return env.step(env_state, action)
 
     jit_override = jax.jit(_override_cmd)
+    reset_fn = env.reset_standup if env.use_prone_standup else env.reset
+    jit_reset = jax.jit(reset_fn)
 
     rng = jax.random.PRNGKey(seed)
     rows = []
     for name, cmd in commands:
         rng, reset_key = jax.random.split(rng)
-        env_state = env.reset(reset_key, jp.array(0.0))
+        env_state = jit_reset(reset_key, jp.array(0.0))
         cmd_arr = jp.array(cmd, dtype=jp.float64)
         samples = []
         prev_action = np.zeros(env.action_dim, dtype=np.float64)
@@ -91,7 +93,20 @@ def evaluate_policy(
             if step_idx >= warmup:
                 local_linvel, local_angvel = _extract_local_vel(env_state)
                 action_np = np.array(action, dtype=np.float64)
-                joint_offsets = np.array(env_state.data.qpos[7:] - env.default_joints)
+                joint_offsets = np.array(
+                    env_state.data.qpos[7:] - env.policy_joints
+                )
+                q = np.array(env_state.data.qpos[7:], dtype=np.float64)
+                mirror_error = np.array(
+                    [
+                        q[0] + q[3],
+                        q[1] - q[4],
+                        q[2] - q[5],
+                        q[6] + q[9],
+                        q[7] - q[10],
+                        q[8] - q[11],
+                    ]
+                )
                 samples.append(
                     {
                         "vx": float(local_linvel[0]),
@@ -104,6 +119,9 @@ def evaluate_policy(
                         "tilt": float(env_state.metrics["tilt"]),
                         "qdev_l2": float(np.linalg.norm(joint_offsets)),
                         "qmax": float(np.max(np.abs(joint_offsets))),
+                        "mirror_rms": float(np.sqrt(np.mean(np.square(mirror_error)))),
+                        "mirror_max": float(np.max(np.abs(mirror_error))),
+                        "mirror_error": mirror_error.tolist(),
                         "action_abs": float(np.mean(np.abs(action_np))),
                         "action_rate_abs": float(np.mean(np.abs(action_np - prev_action))),
                         "done": float(env_state.done),
@@ -112,6 +130,11 @@ def evaluate_policy(
                 prev_action = action_np
 
         cmd_np = np.array(cmd, dtype=np.float64)
+        mirror_series = np.asarray(
+            [sample["mirror_error"] for sample in samples], dtype=np.float64
+        )
+        mirror_mean = np.mean(mirror_series, axis=0)
+        mirror_mean_rms = float(np.sqrt(np.mean(np.square(mirror_mean))))
         row = {
             "policy": str(policy_path),
             "name": name,
@@ -129,6 +152,12 @@ def evaluate_policy(
             "tilt": _mean_metric(samples, "tilt"),
             "qdev_l2": _mean_metric(samples, "qdev_l2"),
             "qmax": _mean_metric(samples, "qmax"),
+            "mirror_rms": _mean_metric(samples, "mirror_rms"),
+            "mirror_max": _mean_metric(samples, "mirror_max"),
+            "mirror_mean_rms": mirror_mean_rms,
+            "mirror_oscillation_rms": float(
+                np.sqrt(max(_mean_metric(samples, "mirror_rms") ** 2 - mirror_mean_rms**2, 0.0))
+            ),
             "action_abs": _mean_metric(samples, "action_abs"),
             "action_rate_abs": _mean_metric(samples, "action_rate_abs"),
             "done_count": int(sum(s["done"] > 0.5 for s in samples)),
