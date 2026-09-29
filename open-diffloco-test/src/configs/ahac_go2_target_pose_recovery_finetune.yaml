@@ -1,0 +1,66 @@
+algorithm: ahac
+embodiment: go2
+variant: blind_nolinvel_nokinref
+model_xml: src/envs/go2/models/scene_mjx.xml
+
+# Joint order: [FL, FR, RL, RR], each [hip, thigh, calf].
+default_joint_pose:
+  [0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5,
+   0.0, 0.8, -1.5]
+default_base_height: 0.330
+target_base_height: 0.330
+action_scale: 0.5
+
+# Resume from the hardware-tested AHAC gait and adapt it to the higher stance.
+resume: training_runs/ahac_20260828_180341/policy_best_tracking.pkl
+ahac_override_hparams_on_resume: true
+ahac_reset_optimizer_on_resume: true
+ahac_reset_best_on_resume: true
+
+# The source checkpoint is at step 6,909,184. Ramp physics randomization from
+# nominal gains to the full range over the additional fine-tuning period.
+steps: 9909184
+seed: 20260929
+unroll_length: 16
+num_envs: 256
+actor_lr: 0.0007
+critic_lr: 0.0001
+critic_iterations: 16
+lr_decay: true
+action_noise_std_start: 0.10
+action_noise_std_end: 0.04
+
+cmd_zero_prob: [0.1, 0.2, 0.3]
+cmd_stand_prob: 0.08
+cmd_vel_x_range: [-1.5, 1.5]
+cmd_vel_y_range: [-1.0, 1.0]
+cmd_yaw_rate_range: [-1.5, 1.5]
+track_weights: [1.5, 2.0, 1.0]
+
+# The center is kp=40, kd=1, then each episode randomizes within these bounds.
+kp_range: [35.0, 45.0]
+kd_range: [0.8, 1.2]
+com_offset: [0.03, 0.03, 0.02]
+terrain: false
+terrain_slope: 5.0
+zero_difficulty_frac: 0.10
+no_curriculum: false
+curriculum_grace: 6909184
+curriculum_steps: 3000000
+
+ahac_contact_force_threshold: 4.5
+ahac_contact_delta_threshold: 3.5
+ahac_penalty_weight: 0.0
+ahac_min_gradient_steps: 8
+ahac_steps_min: 8
+ahac_steps_max: 16
+ahac_initial_horizon: 16
+ahac_lambd_lr: 0.04
+ahac_horizon_contact_threshold: 0.08
+ahac_contact_truncation: false
+
+max_episode_length: 5000
+actor_history_len: 10
+checkpoint_interval: 100000

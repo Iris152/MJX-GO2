@@ -97,6 +97,7 @@ GO2_DEFAULTS = {
     "ahac_contact_truncation": False,
     "ahac_reset_optimizer_on_resume": False,
     "ahac_reset_best_on_resume": False,
+    "ahac_override_hparams_on_resume": False,
     "sapo_init_alpha": 1.0,
     "sapo_target_entropy_scalar": 0.5,
     "sapo_alpha_lr": 0.005,
@@ -410,6 +411,12 @@ def _build_go2_parser(subparsers):
         action="store_true",
         default=argparse.SUPPRESS,
         help="Start a fresh best-policy selection when resuming AHAC fine-tuning",
+    )
+    parser.add_argument(
+        "--ahac-override-hparams-on-resume",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Use the current configuration when fine-tuning a checkpoint",
     )
 
     parser.add_argument(
@@ -767,6 +774,7 @@ def _run_go2(args):
                 ahac_contact_truncation=args.ahac_contact_truncation,
                 ahac_reset_optimizer_on_resume=args.ahac_reset_optimizer_on_resume,
                 ahac_reset_best_on_resume=args.ahac_reset_best_on_resume,
+                ahac_override_hparams_on_resume=args.ahac_override_hparams_on_resume,
             )
         elif args.algorithm == "sapo":
             train_kwargs.update(

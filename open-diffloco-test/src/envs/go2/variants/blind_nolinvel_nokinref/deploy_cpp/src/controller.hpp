@@ -139,9 +139,6 @@ private:
 
   // Observation + safety
   Eigen::VectorXd build_obs();
-  Eigen::VectorXd project_standstill_action(
-      const Eigen::VectorXd &action, const Eigen::Vector3d &cmd) const;
-  bool is_standstill_command(const Eigen::Vector3d &cmd) const;
   bool check_safety();
 
   // State transitions

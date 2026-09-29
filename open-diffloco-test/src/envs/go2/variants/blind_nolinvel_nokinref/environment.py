@@ -7,11 +7,7 @@ import jax.numpy as jp
 import mujoco
 from mujoco import mjx
 
-from src.core.utils import (
-    quat_inv,
-    quat_rotate,
-    axis_angle_to_quat,
-)
+from src.core.utils import quat_inv, quat_rotate
 from src.core.data_structures import EnvState
 from src.envs.go2.terrain import sample_slope_gravity
 
@@ -492,66 +488,72 @@ class Go2Env:
     def reset(self, rng: jax.Array, difficulty: jax.Array = jp.array(0.0)) -> EnvState:
         """Reset environment to initial state with small random perturbations
         and freshly sampled domain randomization."""
-        rng, *keys = jax.random.split(rng, 13)
+        rng, *keys = jax.random.split(rng, 14)
 
         qpos = self.reset_qpos.copy()
         qvel = jp.zeros(self.mj_model.nv)
 
-        # Keep the requested pose exact at difficulty=0. Gradually introduce
-        # reset perturbations as the curriculum advances.
-        reset_noise_scale = jp.asarray(difficulty, dtype=jp.float64)
-        qpos = qpos.at[:2].add(
+        # Keep every startup near the requested pose while exposing recovery
+        # to small left/right-asymmetric errors from the first updates.
+        domain_scale = jp.clip(jp.asarray(difficulty, dtype=jp.float64), 0.0, 1.0)
+        reset_noise_scale = 0.25 + 0.75 * domain_scale
+        position_noise = (
             reset_noise_scale
             * 0.02
-            * (jax.random.uniform(keys[0], (2,)) - 0.5)
+            * (jax.random.uniform(keys[0], (3,)) - 0.5)
         )
-        angle = (
+        qpos = qpos.at[:3].add(position_noise)
+        roll, pitch, yaw = (
             reset_noise_scale
-            * (jp.pi / 20)
-            * (jax.random.uniform(keys[1], ()) - 0.5)
+            * jp.array([0.10, 0.10, 0.15])
+            * (jax.random.uniform(keys[1], (3,)) - 0.5)
         )
-        axis = jp.array([0.0, 0.0, 1.0])
-        qpos = qpos.at[3:7].set(axis_angle_to_quat(axis, angle))
-        joint_noise = (
-            reset_noise_scale
-            * 0.03
-            * (jax.random.uniform(keys[2], (6,)) - 0.5)
-        )
-        mirrored_joint_noise = jp.array(
+        cr, sr = jp.cos(roll * 0.5), jp.sin(roll * 0.5)
+        cp, sp = jp.cos(pitch * 0.5), jp.sin(pitch * 0.5)
+        cy, sy = jp.cos(yaw * 0.5), jp.sin(yaw * 0.5)
+        reset_quat = jp.array(
             [
-                joint_noise[0],
-                joint_noise[1],
-                joint_noise[2],
-                -joint_noise[0],
-                joint_noise[1],
-                joint_noise[2],
-                joint_noise[3],
-                joint_noise[4],
-                joint_noise[5],
-                -joint_noise[3],
-                joint_noise[4],
-                joint_noise[5],
+                cr * cp * cy + sr * sp * sy,
+                sr * cp * cy - cr * sp * sy,
+                cr * sp * cy + sr * cp * sy,
+                cr * cp * sy - sr * sp * cy,
             ]
         )
-        qpos = qpos.at[7:19].add(
-            mirrored_joint_noise
+        qpos = qpos.at[3:7].set(reset_quat)
+        joint_noise = (
+            reset_noise_scale
+            * 0.12
+            * (jax.random.uniform(keys[2], (12,)) - 0.5)
         )
+        qpos = qpos.at[7:19].add(joint_noise)
+        base_velocity_noise = (
+            reset_noise_scale
+            * jp.array([0.30, 0.30, 0.20, 0.50, 0.50, 0.50])
+            * (jax.random.uniform(keys[5], (6,)) - 0.5)
+        )
+        joint_velocity_noise = (
+            reset_noise_scale
+            * 0.80
+            * (jax.random.uniform(keys[6], (12,)) - 0.5)
+        )
+        qvel = qvel.at[:6].set(base_velocity_noise)
+        qvel = qvel.at[6:18].set(joint_velocity_noise)
 
         friction_raw = jax.random.uniform(
-            keys[6], (), minval=self.friction_range[0], maxval=self.friction_range[1]
+            keys[7], (), minval=self.friction_range[0], maxval=self.friction_range[1]
         )
         mass_raw = jax.random.uniform(
-            keys[7], (), minval=self.mass_range[0], maxval=self.mass_range[1]
+            keys[8], (), minval=self.mass_range[0], maxval=self.mass_range[1]
         )
-        # Domain randomization curriculum:
-        # difficulty=0 -> nominal friction/mass, difficulty=1 -> full range.
-        friction_scale = 1.0 + reset_noise_scale * (friction_raw - 1.0)
-        mass_scale = 1.0 + reset_noise_scale * (mass_raw - 1.0)
+        # Physics randomization remains nominal at difficulty=0 and reaches
+        # the configured ranges at difficulty=1.
+        friction_scale = 1.0 + domain_scale * (friction_raw - 1.0)
+        mass_scale = 1.0 + domain_scale * (mass_raw - 1.0)
         kp_raw = jax.random.uniform(
-            keys[9], (), minval=self.kp_range[0], maxval=self.kp_range[1]
+            keys[10], (), minval=self.kp_range[0], maxval=self.kp_range[1]
         )
         kd_raw = jax.random.uniform(
-            keys[10], (), minval=self.kd_range[0], maxval=self.kd_range[1]
+            keys[11], (), minval=self.kd_range[0], maxval=self.kd_range[1]
         )
         # Curriculum gain randomization with difficulty:
         #   difficulty=0 --> kp=nominal
@@ -560,7 +562,7 @@ class Go2Env:
         kd = self.kd_nominal + difficulty * (kd_raw - self.kd_nominal)
 
         # Generate per-episode COM offset and slope gravity.
-        k_com, k_terrain = jax.random.split(keys[8])
+        k_com, k_terrain = jax.random.split(keys[9])
 
         # COM offset: uniform in [-range, +range], set by curriculum
         if self.use_com_offset:
@@ -584,7 +586,7 @@ class Go2Env:
 
         # Randomize episode length uniformly in +/-25% of max_episode_length.
         episode_max_len = jax.random.randint(
-            keys[11],
+            keys[12],
             (),
             self.max_episode_length * 3 // 4,
             self.max_episode_length * 5 // 4 + 1,
@@ -693,38 +695,6 @@ class Go2Env:
         biasprm = model.actuator_biasprm.at[:, 1].set(-kp)
         biasprm = biasprm.at[:, 2].set(-kd)
         return model.replace(actuator_gainprm=gainprm, actuator_biasprm=biasprm)
-
-    def _project_sagittal_action(self, action, cmd):
-        """Keep symmetric commands from acquiring a left/right bias.
-
-        Reflection across the sagittal plane flips hip-abduction signs and
-        swaps the corresponding left/right joints. The projection is applied
-        only while standing still. A walking policy must be allowed to use
-        alternating left/right phases even for a straight command.
-        """
-        mirrored = jp.array(
-            [
-                -action[3],
-                action[4],
-                action[5],
-                -action[0],
-                action[1],
-                action[2],
-                -action[9],
-                action[10],
-                action[11],
-                -action[6],
-                action[7],
-                action[8],
-            ]
-        )
-        standstill_command = jp.all(jp.abs(cmd) < 0.05)
-        return jp.where(standstill_command, 0.5 * (action + mirrored), action)
-
-    @staticmethod
-    def _is_standstill_command(cmd):
-        """Return true for the command region handled by the stand controller."""
-        return jp.all(jp.abs(cmd) < 0.05)
 
     def reset_standup(
         self, rng: jax.Array, difficulty: jax.Array = jp.array(0.0)
@@ -884,22 +854,10 @@ class Go2Env:
 
         NOTE: External disturbances are applied by the training rollout.
         """
-        standstill_command = self._is_standstill_command(state.info["cmd"])
         action = jp.clip(action, -1, 1).astype(jp.float64)
-        action = self._project_sagittal_action(action, state.info["cmd"])
-        # A zero command is a physical standing mode, not a locomotion action.
-        # Holding the geometric target with the stiff stand-up gains prevents
-        # gravity from turning the requested [0, 0.8, -1.5] pose into a low,
-        # asymmetric-looking crouch before the policy starts walking.
-        action = jp.where(standstill_command, jp.zeros_like(action), action)
         ctrl = self.default_joints + action * self.action_scale
 
         model = self._get_randomized_model(state.info)
-        hold_kp = jp.where(
-            standstill_command, self.standup_kp_end, state.info["kp"]
-        )
-        hold_kd = jp.where(standstill_command, self.standup_kd, state.info["kd"])
-        model = self._model_with_pd(model, hold_kp, hold_kd)
 
         # Physics simulation
         def physics_step(data, _):

@@ -141,6 +141,7 @@ def train(
     ahac_contact_truncation: bool = False,
     ahac_reset_optimizer_on_resume: bool = False,
     ahac_reset_best_on_resume: bool = False,
+    ahac_override_hparams_on_resume: bool = False,
     # Misc.
     diagnose: bool = False,
     seed: int = 0,
@@ -213,6 +214,8 @@ def train(
             loading a policy, useful when AHAC fine-tunes a SHAC checkpoint.
         ahac_reset_best_on_resume: Start fresh best-policy selection in the new
             AHAC run instead of inheriting the source run's thresholds.
+        ahac_override_hparams_on_resume: Keep the supplied configuration when
+            fine-tuning a checkpoint, while restoring its learned state.
         diagnose: Enable detailed diagnostic logging
         seed: Random seed
         resume_from: Path to checkpoint .pkl file or training folder to resume from
@@ -228,7 +231,7 @@ def train(
 
     if resume_from:
         resumed_state, resumed_hparams, resumed_step = load_checkpoint(resume_from)
-        if resumed_hparams:
+        if resumed_hparams and not ahac_override_hparams_on_resume:
             print(f"Resuming from step {resumed_step}")
             print(
                 f"  Loaded hparams: action_scale={resumed_hparams.get('action_scale')}"
@@ -305,6 +308,8 @@ def train(
                 ]
             if "ahac_contact_truncation" in resumed_hparams:
                 ahac_contact_truncation = resumed_hparams["ahac_contact_truncation"]
+        elif resumed_hparams:
+            print("Using current configuration for AHAC fine-tuning")
 
     # Compute curriculum defaults relative to total_steps
     if curriculum_grace is None:
@@ -479,6 +484,7 @@ def train(
         "ahac_contact_truncation": ahac_contact_truncation,
         "ahac_reset_optimizer_on_resume": ahac_reset_optimizer_on_resume,
         "ahac_reset_best_on_resume": ahac_reset_best_on_resume,
+        "ahac_override_hparams_on_resume": ahac_override_hparams_on_resume,
         "seed": seed,
         "best_reward": best_reward,
         "best_tracking": best_tracking,
